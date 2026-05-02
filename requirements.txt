@@ -15,8 +15,8 @@ psycopg2-binary==2.9.11
 pydantic-settings==2.12.0
 rank-bm25==0.2.2
 rapidfuzz==3.14.3
-# sentence-transformers==5.2.3 안씀
+# sentence-transformers==5.2.3 not used
 sqlalchemy==2.0.47
 sqlglot==29.0.1
-# uvloop==0.22.1  window 설치 불가
+# uvloop==0.22.1 not supported on windows
 watchfiles==1.1.1
