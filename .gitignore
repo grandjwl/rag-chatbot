@@ -1,0 +1,33 @@
+# 환경변수 (절대 올리면 안 됨)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+
+# 가상환경
+venv/
+.venv/
+env/
+
+# 로그
+logs/
+*.log
+
+# pytest
+.pytest_cache/
+.coverage
+
+# VSCode
+.vscode/
+
+# 빌드
+dist/
+build/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db

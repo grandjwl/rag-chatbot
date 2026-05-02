@@ -1,0 +1,2 @@
+class VectorCollectionNotFound(Exception):
+    pass
