@@ -42,9 +42,9 @@
 
 ### 데이터와 모델
 
+<br><br>
 #### 데이터
 <img src="./assets/rdbms-vector-db.png" width="100%" />
-
 
 - **관계형 DB (PostgreSQL)** — 전자부품 유통 도메인을 반영하여 7개 테이블로 설계했습니다. 제품 마스터(`products`), 제조사(`manufacturers`), 고객사(`vendors`), 매입 이력(`purchase_orders`), 매출 이력(`sales_orders`), 실시간 재고(`current_products`), 초기 재고(`initial_inventory`) 테이블이 `part_number`를 중심으로 연결됩니다.
 - **벡터 DB (ChromaDB)** — RAG 보조 데이터를 4개 컬렉션으로 분리 관리합니다.
