@@ -31,7 +31,8 @@
 <br><br>
 
 ### 프로젝트 환경
-![image](여기에_PPT_10페이지_아키텍처_이미지)
+![image](https://github.com/user-attachments/assets/46885031-319b-47cb-90fc-9c84ebc5ca17)
+
 
 - 전체 시스템은 **Docker Compose**로 컨테이너화되어 있으며, 각 컴포넌트는 독립적으로 실행됩니다.
 - 사용자 인터페이스는 **React + TypeScript + Axios** 기반 프론트엔드로 구성됩니다.
