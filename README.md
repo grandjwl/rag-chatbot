@@ -16,7 +16,8 @@
 
 ### 프로젝트 개요
 
-![image](https://github.com/user-attachments/assets/6a97460e-0b60-4770-92fe-946e3fc05222)
+![image](https://github.com/user-attachments/assets/69a9ab06-aee8-4d44-926e-17ccebb3e6dc)
+
 
 - 최근 기업 환경에서 AI 챗봇 도입이 늘어나고 있으나, 기존 챗봇은 내부 DB와 직접 연결되지 않아 실무 데이터 조회가 불가능한 한계가 있었습니다. 또한 대화 맥락 유지가 어렵고 완전 자동화에도 제약이 있어 의사결정 지원 도구로서의 기능이 제한적이었습니다.
    > 예시로, 매출 데이터를 묻는 질문에도 실제 DB 조회 없이 추정 답변만 제공하는 경우가 많았습니다.
