@@ -23,7 +23,7 @@
 <br><br>
 
 ### 프로젝트 구조
-![image](https://github.com/user-attachments/assets/69a9ab06-aee8-4d44-926e-17ccebb3e6dc)
+<img src="./assets/project-structure.png" width="100%" />
 
 - 사용자의 자연어 질문은 **LLM**을 거쳐 처리되며, **PostgreSQL**의 정형 데이터(구매·판매 정보)와 **ChromaDB**의 벡터 데이터(RAG 보조 자료)를 조합하여 답변을 생성합니다.
 - 생성된 답변은 **AI 비서**를 통해 **프론트엔드**에 전달되며, 사용자는 챗봇·대시보드·업무 관리 화면에서 결과를 확인할 수 있습니다.
@@ -31,7 +31,7 @@
 <br><br>
 
 ### 프로젝트 환경
-![image](https://github.com/user-attachments/assets/46885031-319b-47cb-90fc-9c84ebc5ca17)
+<img src="./assets/system-architecture.png" width="100%" />
 
 - 전체 시스템은 **Docker Compose**로 컨테이너화되어 있으며, 각 컴포넌트는 독립적으로 실행됩니다.
 - 사용자 인터페이스는 **React + TypeScript + Axios** 기반 프론트엔드로 구성됩니다.
@@ -43,7 +43,7 @@
 ### 데이터와 모델
 
 #### 데이터
-![image](https://github.com/user-attachments/assets/24ba33f3-d50f-4433-ad6a-95a85bfd2b00)
+<img src="./assets/rdbms-vector-db.png" width="100%" />
 
 
 - **관계형 DB (PostgreSQL)** — 전자부품 유통 도메인을 반영하여 7개 테이블로 설계했습니다. 제품 마스터(`products`), 제조사(`manufacturers`), 고객사(`vendors`), 매입 이력(`purchase_orders`), 매출 이력(`sales_orders`), 실시간 재고(`current_products`), 초기 재고(`initial_inventory`) 테이블이 `part_number`를 중심으로 연결됩니다.
