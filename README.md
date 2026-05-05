@@ -33,7 +33,6 @@
 ### 프로젝트 환경
 ![image](https://github.com/user-attachments/assets/46885031-319b-47cb-90fc-9c84ebc5ca17)
 
-
 - 전체 시스템은 **Docker Compose**로 컨테이너화되어 있으며, 각 컴포넌트는 독립적으로 실행됩니다.
 - 사용자 인터페이스는 **React + TypeScript + Axios** 기반 프론트엔드로 구성됩니다.
 - 백엔드와 LLM 서버는 모두 **Python + FastAPI**로 구현되어 RESTful API로 통신합니다.
@@ -44,7 +43,8 @@
 ### 데이터와 모델
 
 #### 데이터
-![image](여기에_PPT_12페이지_ERD_이미지)
+![image](https://github.com/user-attachments/assets/24ba33f3-d50f-4433-ad6a-95a85bfd2b00)
+
 
 - **관계형 DB (PostgreSQL)** — 전자부품 유통 도메인을 반영하여 7개 테이블로 설계했습니다. 제품 마스터(`products`), 제조사(`manufacturers`), 고객사(`vendors`), 매입 이력(`purchase_orders`), 매출 이력(`sales_orders`), 실시간 재고(`current_products`), 초기 재고(`initial_inventory`) 테이블이 `part_number`를 중심으로 연결됩니다.
 - **벡터 DB (ChromaDB)** — RAG 보조 데이터를 4개 컬렉션으로 분리 관리합니다.
