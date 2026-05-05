@@ -16,59 +16,43 @@
 
 ### 프로젝트 개요
 
-<!-- 이미지: BizAI 서비스 전체 흐름 다이어그램 (PPT 11페이지) -->
+<img src="images/service_overview.png" width="700"/>
 
 - 전자부품 유통사의 업무 담당자가 **자연어 질문만으로** 재고·매출·매입 데이터를 즉시 조회하고 인사이트를 얻을 수 있는 기업 AI 비서 서비스입니다.
-- 기존 챗봇은 내부 DB와 직접 연결되지 않아 실무 데이터 조회가 불가능했고, 대화 맥락 유지나 완전 자동화에도 한계가 있었습니다.
+- 기존 챗봇은 내부 DB와 직접 연결되지 않아 실무 데이터 조회가 불가능했고, 대화 맥락 유지와 완전 자동화에 한계가 있었습니다.
 - **LLM + RAG + Orchestration** 세 가지를 결합하여 이러한 한계를 극복했습니다.
 
-<!-- 이미지: LLM·RAG·Orchestration 삼각형 다이어그램 (PPT 6페이지) -->
-<img width="374" height="250" alt="image" src="https://github.com/user-attachments/assets/84859b52-a7eb-4eb3-bbac-859202858881" />
-
-
+<img src="images/llm_rag_orchestration.png" width="700"/>
 
 - LLM의 부정확성은 RAG가 보완하고, RAG의 검색 의존성은 Orchestration이 통제하며, LLM의 비용·성능 문제는 Orchestration이 모델 전략으로 조정합니다.
-
-> 프로젝트 기간 : 2025년 2월 9일 ~ 3월 6일 (4주)
 <br><br>
 
 ### 주요 기능
 
 #### 💬 AI 업무 챗봇
-<!-- 이미지: 챗봇 메인 화면 스크린샷 (PPT 22페이지) -->
-<img width="490" height="321" alt="image" src="https://github.com/user-attachments/assets/27ab6492-98a2-47f6-8159-a480b07db044" />
-<img width="483" height="310" alt="image" src="https://github.com/user-attachments/assets/357cb27a-64ee-4980-8405-c6d9758e548e" />
-
+<img src="images/chatbot_main.png" width="700"/>
 
 - 자연어로 재고·매출·매입 데이터를 즉시 조회합니다.
 - 이전 대화 맥락을 기억하여 후속 질문도 자연스럽게 처리합니다.
-- 일상 대화(CHIT_CHAT)와 업무 데이터 질의(INVENTORY)를 자동으로 분류하여 처리합니다.
+- 일상 대화와 업무 데이터 질의를 자동으로 분류하여 처리합니다.
 <br><br>
 
 #### 🤖 미니 챗봇
-<!-- 이미지: 미니챗봇 스크린샷 (PPT 23페이지) -->
-<img width="395" height="325" alt="image" src="https://github.com/user-attachments/assets/bbcdfd0d-25bb-4cfe-b7d1-bb99bdb0c558" />
-
+<img src="images/mini_chatbot.png" width="700"/>
 
 - 모든 화면에서 플로팅 형태로 즉시 질문할 수 있습니다.
 - 확대·축소 가능한 반응형 UI로 작업 중 빠른 질문이 가능합니다.
 <br><br>
 
 #### 📊 업무 대시보드
-<!-- 이미지: 대시보드 스크린샷 (PPT 24페이지) -->
-<img width="539" height="275" alt="image" src="https://github.com/user-attachments/assets/876ceb6b-82bc-45dc-a59d-8b8dbc8e26ec" />
-<img width="539" height="273" alt="image" src="https://github.com/user-attachments/assets/1c7c7672-6d2f-453d-98e8-2c01315fbc85" />
-
+<img src="images/dashboard.png" width="700"/>
 
 - 재고 현황, 매출 인사이트 등 업무 특화 대시보드를 제공합니다.
 - 연도별·품목별 경영 실적 추이와 긴급 구매 필요 품목을 한눈에 확인할 수 있습니다.
 <br><br>
 
 #### 📦 재고 운영 관리
-<!-- 이미지: 운영 관리 화면 스크린샷 (PPT 26페이지) -->
-<img width="606" height="305" alt="image" src="https://github.com/user-attachments/assets/c619084c-cb65-49b6-ae39-1ba7f94a1d99" />
-<img width="604" height="307" alt="image" src="https://github.com/user-attachments/assets/b8cc0590-2781-4899-a96e-219d57df4030" />
-
+<img src="images/inventory.png" width="700"/>
 
 - 실시간 재고 현황 확인 및 제품 카탈로그 관리 기능을 제공합니다.
 - 재고 50개 미만 품목을 자동으로 감지하여 구매 필요 수량을 표시합니다.
@@ -76,23 +60,20 @@
 
 ### 시스템 아키텍처
 
-<!-- 이미지: 전체 아키텍처 다이어그램 (PPT 10페이지) -->
+<img src="images/architecture.png" width="700"/>
 
 - 전체 서비스는 React 프론트엔드, FastAPI 백엔드, LLM 서버, PostgreSQL + ChromaDB로 구성됩니다.
 - 각 컴포넌트는 Docker로 컨테이너화되어 Cloudflare 터널을 통해 연결됩니다.
 <br><br>
 
 #### 데이터 구조
-
-<!-- 이미지: ERD + 벡터DB 컬렉션 구조 (PPT 12페이지) -->
+<img src="images/data_structure.png" width="700"/>
 
 - **관계형 DB (PostgreSQL)** — 전자부품 마스터, 제조사/고객사 정보, 매입/매출 이력, 실시간 재고 현황 등 7개 테이블로 구성됩니다.
 - **벡터 DB (ChromaDB)** — SQL 생성 보조용 fewshot 예시, 비즈니스 용어 정의, 테이블 스키마 정보, 파트넘버 교정 데이터를 컬렉션으로 관리합니다.
 <br><br>
 
 ### 기술 스택
-
-<!-- 이미지: 기술스택 이미지 (PPT 9페이지) -->
 
 - **LLM / AI** : Gemini 2.5 Flash, Cohere Reranker
 - **LLM Server** : Python, FastAPI, LangGraph
@@ -101,3 +82,30 @@
 - **Infra** : Docker, Cloudflare
 - **개발 환경** : VSCode, GitHub
 <br><br>
+
+### LLM 서버 상세
+
+> 본 프로젝트에서 LLM 서버의 설계 및 구현을 담당하였습니다.
+> FastAPI 기반의 에이전트 파이프라인으로, 자연어 질문을 SQL로 변환하여 DB를 조회하고 자연어 답변을 생성합니다.
+
+#### 전체 플로우
+
+<img src="images/agent_graph.png" width="700"/>
+
+사용자의 질문은 아래 순서로 처리됩니다.
+
+- **Memory** — 이전 대화 기록을 불러와 맥락을 주입합니다. 후속 질문("그때 제품은?")을 완전한 질문으로 재조립합니다.
+- **Refine** — 제조사·고객사 이름 오타를 fuzzy 매칭으로 교정하고, 파트넘버 오타를 벡터 검색으로 보정합니다.
+- **Router** — 키워드 매칭과 LLM fallback으로 질문 유형을 분류합니다.
+  - `INVENTORY` : DB 조회가 필요한 업무 질의
+  - `CHIT_CHAT` / `TECH_SALES` : 바로 답변 생성으로 이동
+- **SQL Gen** — RAG 컨텍스트(fewshot 예시, 비즈니스 용어, 스키마 정보)를 참고하여 LLM이 SQL을 생성합니다.
+- **Execute DB** — 5단계 검증(보안·문법·논리·스키마·JOIN 규칙) 후 PostgreSQL에 실행합니다.
+- **Validate** — 결과의 NULL 비율, 음수 매출, 극단값을 검사합니다. 이상 감지 시 SQL Gen으로 재시도합니다.
+- **Answer** — DB 결과를 FACT로 LLM에 주입하여 자연어 답변을 생성합니다. Hallucination을 방지하기 위해 실제 조회 데이터만 사용합니다.
+- **Save** — 질문·답변·SQL·처리시간을 DB에 저장하여 다음 대화의 기억으로 활용합니다.
+
+> 재시도는 최대 3회까지 수행되며, 초과 시 에러 메시지를 안내합니다.
+<br><br>
+
+#### 프로젝트 구조
