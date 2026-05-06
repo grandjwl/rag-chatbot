@@ -50,16 +50,9 @@
 <br><br>
 
 #### 모델 선정
-![image](여기에_PPT_15페이지_LLM_Test_이미지)
-
-- LLM은 무료 모델 3종(Groq-Llama-3.3-70B, Groq-Llama-3.1-8B, Gemini-2.5-Flash)을 응답 시간과 정확도 기준으로 비교했습니다.
-- Groq 계열이 응답 속도는 빠르나 SQL 생성 정확도와 한국어 이해도에 한계가 있었고, **Gemini-2.5-Flash**가 정확도와 안정성에서 우수하여 최종 선정했습니다.
-<br><br>
-
-![image](여기에_PPT_18페이지_임베딩_테스트_이미지)
-
-- 임베딩 모델은 4종(OpenAI ada-002, Gemini embedding-v1, Upstage, OpenAI 3-large)을 논리 변별력과 맥락 파악력 기준으로 비교했습니다.
-- 요약 정확도(0.67)와 논리 정확도(0.56)가 모두 준수한 **Gemini embedding-v1**을 선정했습니다.
+- **LLM** — 무료 모델 중 SQL 생성 정확도와 한국어 이해도가 우수한 **Gemini 2.5 Flash**를 선정했습니다. 공개 벤치마크와 도메인 샘플 테스트를 기준으로 판단했습니다.
+- **임베딩** — 동일 Gemini 생태계와의 일관성 및 다국어 처리 성능을 고려하여 **Gemini embedding-v1**을 선정했습니다.
+- **리랭커** — 한국어 포함 다국어 검색 품질이 검증된 **Cohere rerank-multilingual-v3.0**을 적용하여 RAG 검색 결과의 정확도를 보강했습니다.
 <br><br>
 
 ### LLM 서버 구현
