@@ -61,7 +61,7 @@
 > FastAPI 기반의 에이전트 파이프라인으로, 자연어 질문을 SQL로 변환하여 DB를 조회하고 자연어 답변을 생성합니다.
 
 #### 에이전트 그래프 흐름
-![image](여기에_PPT_13페이지_Agent_Graph_이미지)
+<img src="./assets/graph-node.png" width="100%" />
 
 - 사용자의 질문은 LangGraph 기반 파이프라인을 통해 아래 순서로 처리됩니다.
    > **Memory → Refine → Router → (SQL Gen → Execute DB → Validate) → Answer → Save**
@@ -85,14 +85,8 @@
 <br><br>
 
 #### 실제 동작 화면
-![image](여기에_PPT_22페이지_챗봇_메인_이미지)
-
-- LLM 서버를 호출하는 React 기반 챗봇 인터페이스입니다. 자연어로 질문하면 위 파이프라인을 거쳐 답변을 반환합니다.
-<br><br>
-
-![image](여기에_PPT_23페이지_미니챗봇_이미지)
-
-- 모든 화면에서 플로팅 형태로 즉시 질문할 수 있는 미니 챗봇 UI도 제공됩니다.
+<img src="./assets/interface.png" width="100%" />
+- LLM 서버를 호출하는 챗봇 인터페이스입니다. 자연어로 질문하면 Memory → Refine → Router → SQL Gen → Execute DB → Validate → Answer 파이프라인을 거쳐 답변을 반환합니다.
 <br><br>
 
 ### 추후 연구 방향
