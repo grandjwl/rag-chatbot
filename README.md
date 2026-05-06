@@ -10,7 +10,6 @@
 4. [데이터와 모델](#데이터와-모델)
 5. [LLM 서버 구현](#llm-서버-구현)
 6. [추후 연구 방향](#추후-연구-방향)
-7. [참고 문헌](#참고-문헌)
 
 <hr>
 
@@ -90,17 +89,8 @@
 <br><br>
 
 ### 추후 연구 방향
-- 성공한 SQL을 자동으로 fewshot 데이터로 축적하여 RAG 검색 품질을 지속적으로 개선합니다.
-- 맥락 기억 기능을 계층화하여 장기 기억과 단기 기억을 분리하고 성능을 고도화합니다.
-- 다양한 임베딩 모델 추가 테스트를 통해 더 나은 검색 품질을 확보합니다.
-- 챗봇 답변 시각화 기능(차트, 그래프)을 추가합니다.
-- 데이터 축적 이후 LOCAL LLM 도입을 재시도합니다.
-<br><br>
-
-### 참고 문헌
-- [LangGraph 공식 문서](https://langchain-ai.github.io/langgraph/)
-- [Gemini API 문서](https://ai.google.dev/gemini-api/docs)
-- [Cohere Rerank 문서](https://docs.cohere.com/docs/rerank)
-- [ChromaDB 공식 문서](https://docs.trychroma.com/)
-- [FastAPI 공식 문서](https://fastapi.tiangolo.com/)
+- 질문 유형과 복잡도에 따라 호출할 LLM을 동적으로 선택하는 **LLM 라우팅**을 도입하여 API 비용을 최적화합니다. 현재 단일 모델(Gemini)에 의존하는 구조를 다양한 API로 확장하는 기반이 됩니다.
+- 도메인 데이터를 추가 확보하여 SQL 생성 프롬프트와 비즈니스 로직 규칙을 정밀하게 개선하고, refine·rerank 임계값 등 주요 파라미터를 체계적인 테스트를 통해 조정합니다.
+- 대화 기억 구조를 단기·장기 메모리로 계층화하여 맥락 유지 성능을 고도화합니다.
+- 챗봇 답변에 차트·그래프 시각화 기능을 추가하여 데이터 인사이트 전달력을 높입니다.
 <br><br>
