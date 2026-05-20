@@ -86,7 +86,7 @@ class ExecuteDBService:
         column_map: dict,
         valid_joins: dict,
         db_schema: str,
-        query_limit: int = 1000,
+        query_limit: int = 3000,
     ):
         self.rdb_repository = rdb_repository
         self.COLUMN_MAP = column_map or {}
