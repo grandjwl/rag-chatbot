@@ -1,7 +1,7 @@
 import requests
 
 response = requests.post(
-    "http://127.0.0.1:8000/v1/llm/agent/query",
+    "http://127.0.0.1:8001/v1/llm/agent/query",
     json={
         "user_id": "test",
         "session_id": "s1",
