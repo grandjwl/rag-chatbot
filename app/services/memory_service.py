@@ -250,6 +250,6 @@ class MemoryService:
             refined_question=refined_question,
             response_data=response_data,
             final_sql=final_sql,
-            refine_corrections=refine_corrections,
+            entity_corrections=refine_corrections,
             execution_time_ms=execution_time_ms,
         )

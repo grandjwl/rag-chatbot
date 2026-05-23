@@ -236,8 +236,8 @@ class SQLGenerateService:
 
         sql_lower = sql.lower().strip()
 
-        # SELECT 시작 확인
-        if not sql_lower.startswith("select"):
+        # SELECT 또는 WITH(CTE) 시작 확인
+        if not sql_lower.startswith("select") and not sql_lower.startswith("with"):
             return False
 
         # 위험 쿼리 차단

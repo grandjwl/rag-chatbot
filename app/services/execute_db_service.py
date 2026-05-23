@@ -334,8 +334,10 @@ class ExecuteDBService:
 
             if alias in alias_map:
                 table = alias_map[alias]
-                if col not in [c.lower() for c in self.COLUMN_MAP.get(table, [])]:
-                    return False, f"'{col}'은 '{table}' 테이블에 없음."
+                # CTE 이름은 COLUMN_MAP에 없으므로 실제 테이블만 검증
+                if table in self.COLUMN_MAP:
+                    if col not in [c.lower() for c in self.COLUMN_MAP.get(table, [])]:
+                        return False, f"'{col}'은 '{table}' 테이블에 없음."
 
         return True, ""
 
@@ -445,26 +447,33 @@ class ExecuteDBService:
         """
         FROM / JOIN 절의 테이블에 schema 자동 주입
         """
+        # WITH 절에서 CTE 이름 추출 (스키마 주입 대상에서 제외)
+        cte_names = {
+            m.group(1).lower()
+            for m in re.finditer(r"\b(\w+)\s+AS\s*\(", sql, re.IGNORECASE)
+        }
 
         def replace_from(match):
             keyword = match.group(1)
             table = match.group(2)
 
-            # [추가] EXTRACT 함수 내부의 FROM 인지 확인
-            # match.start() 이전 문자열을 확인하여 EXTRACT가 있는지 체크
+            # EXTRACT 함수 내부의 FROM 인지 확인
             prefix = sql[: match.start()].lower()
             if (
                 "extract" in prefix
                 and "(" in prefix
                 and ")" not in prefix.split("extract")[-1]
             ):
-                return match.group(0)  # 함수 내부면 치환 안 함
+                return match.group(0)
 
             if "." in table:
                 return match.group(0)
 
+            # CTE 이름은 스키마 주입 대상 제외
+            if table.lower() in cte_names:
+                return match.group(0)
+
             return f"{keyword} {self.db_schema}.{table}"
 
-        # \b(단어 경계)를 추가하여 정확히 FROM/JOIN 단어일 때만 매칭
         pattern = r"\b(FROM|JOIN)\s+([a-zA-Z_][a-zA-Z0-9_]*)"
         return re.sub(pattern, replace_from, sql, flags=re.IGNORECASE)

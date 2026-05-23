@@ -24,7 +24,7 @@ class ConversationRepository:
         refined_question: str,
         response_data: Dict,
         final_sql: Optional[str],
-        refine_corrections: Dict,
+        entity_corrections: Dict,
         execution_time_ms: int,
     ):
 
@@ -33,7 +33,7 @@ class ConversationRepository:
             user_id, session_id, role,
             question, refined_question,
             response_data, final_sql,
-            refine_corrections,
+            entity_corrections,
             execution_time_ms,
             created_at
         )
@@ -49,7 +49,7 @@ class ConversationRepository:
             refined_question,
             json.dumps(response_data),
             final_sql,
-            json.dumps(refine_corrections),
+            json.dumps(entity_corrections),
             execution_time_ms,
             datetime.utcnow(),
         )
@@ -69,7 +69,7 @@ class ConversationRepository:
             refined_question,
             final_sql,
             response_data,
-            refine_corrections,
+            entity_corrections,
             created_at
         FROM {self.schema}.conversations
         WHERE user_id = $1

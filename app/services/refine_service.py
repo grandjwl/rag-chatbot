@@ -88,8 +88,6 @@ class RefineService:
     REFINE_FETCH_TOP_K = 3
     REFINE_DISTANCE_THRESHOLD = 0.15
     FUZZY_THRESHOLD = 70
-    SYNONYM_RERANK_THRESHOLD = 0.05
-    SYNONYM_FETCH_TOP_K = 10
 
     def __init__(
         self,
@@ -155,44 +153,6 @@ class RefineService:
         return refined
 
     # =========================
-    # 3. 동의어 검색 (벡터 + 리랭킹)
-    #
-    # 후보 10개 → 리랭킹 → 상위 n개 중 점수 임계값 통과분 반환
-    # =========================
-    async def _retrieve_synonyms(self, question: str, top_n: int = 3) -> str:
-
-        # 후보 10개 조회
-        candidates = await self.vector_repository.search_by_text(
-            collection_name="SB_synonym_store",
-            query_text=question,
-            top_k=10,
-        )
-        # print("DEBUG candidates in synonyms:", candidates)
-        if not candidates:
-            return ""
-
-        cand_docs = [doc for doc, _, _ in candidates]
-        cand_metas = [meta for _, meta, _ in candidates]
-
-        # 리랭킹 + 점수
-        final_docs, final_metas, final_scores = await self.reranker.rerank(
-            question, cand_docs, cand_metas, top_n=top_n, with_scores=True
-        )
-
-        hints = []
-        for doc, meta, score in zip(final_docs, final_metas, final_scores):
-            # 디버깅용 프린트문
-            # print("DEBUG:", doc, score)
-            # print("DEBUG synonym 후보 수:", len(cand_docs))
-            # print("DEBUG rerank score:", doc, score)
-            if score > self.SYNONYM_RERANK_THRESHOLD:  # 리랭커 정규화 점수 임계값
-                hints.append(
-                    f"'{doc}' → '{meta.get('canonical')}' ({meta.get('type')})"
-                )
-
-        return ", ".join(hints) if hints else ""
-      
-    # =========================
     # 외부 호출용 API
     # =========================
     async def resolve(self, question: str) -> dict:
@@ -223,7 +183,6 @@ class RefineService:
         """
         refined = self._fuzzy_correct(question)
         refined = await self._vector_correct_part_number(refined)
-        # synonym_hint = await self._retrieve_synonyms(question)
         synonym_hint = ""
         return {
             "refined_question": refined,

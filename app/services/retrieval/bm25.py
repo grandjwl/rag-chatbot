@@ -11,10 +11,14 @@ class BM25Index:
 
     async def build(self):
         from rank_bm25 import BM25Okapi
+        from app.infra.vector.exceptions import VectorCollectionNotFound
 
-        data = await self.vector_repository.get_all(
-            self.collection_name
-        )
+        try:
+            data = await self.vector_repository.get_all(self.collection_name)
+        except VectorCollectionNotFound:
+            self.docs = []
+            self.metas = []
+            return
 
         self.docs = data.get("documents", [])
         self.metas = data.get("metadatas", [])

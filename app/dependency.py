@@ -29,14 +29,22 @@ def create_provider_registry() -> ProviderRegistry:
 
     registry = ProviderRegistry()
 
-    registry.register_llm(
-        model_name=settings.LLM_MODEL,
-        # 재미나이
-        provider=GeminiLLMProvider(
-            api_key=settings.GEMINI_API_KEY,
-            model_name=settings.LLM_MODEL,
+    # LLM_MODEL과 서비스별 모델이 다를 수 있으므로 중복 제거 후 전부 등록
+    llm_models_to_register = {
+        settings.LLM_MODEL,
+        settings.router_model,
+        settings.sql_model,
+        settings.answer_model,
+        settings.chitchat_model,
+    }
+    for model_name in llm_models_to_register:
+        registry.register_llm(
+            model_name=model_name,
+            provider=GeminiLLMProvider(
+                api_key=settings.GEMINI_API_KEY,
+                model_name=model_name,
+            ),
         )
-    )
 
     registry.register_embedding(
         model_name=settings.EMBEDDING_MODEL,

@@ -19,8 +19,6 @@ from app.services.retry_strategy_service import RetryStrategyService
 from app.services.execute_db_service import ExecuteDBService
 from app.services.result_validation_service import ResultValidationService
 from app.services.answer_service import AnswerService
-from app.services.retry_decision_service import RetryDecisionService
-
 from app.core.config import settings
 from app.core.metadata_bundle import MetadataBundle
 
@@ -49,11 +47,29 @@ class ServiceContainer:
 
         self.rerank_service = RerankService(reranker=_reranker_provider)
 
+        # ─────────────────────────────
+        # 🔥 RAG Stack
+        # ─────────────────────────────
+
+        # 1️⃣ BM25 (fewshot용)
+        self.bm25_index = BM25Index(
+            vector_repository=vector_repository,
+            collection_name="fewshot",
+        )
+
+        # 2️⃣ Retrieval Engine
+        self.retrieval_engine = RetrievalEngine(
+            vector_repository=vector_repository,
+            rerank_service=self.rerank_service,
+            bm25_index=self.bm25_index,
+        )
+
+        # 3️⃣ RAG Service
+        self.rag_service = RAGService(retrieval_engine=self.retrieval_engine)
+
         self.router_service = RouterService(llm_service=self.llm_service)
 
         self.retry_strategy_service = RetryStrategyService(metadata_bundle.column_map)
-
-        self.rag_service = RAGService(retrieval_engine=self.retrival_engine)
 
         self.memory_service = MemoryService(
             conversation_repository=conversation_repository
@@ -82,25 +98,3 @@ class ServiceContainer:
         self.result_validation_service = ResultValidationService()
 
         self.answer_service = AnswerService(llm_service=self.llm_service)
-
-        self.retry_decision_service = RetryDecisionService()
-        
-        # ─────────────────────────────
-        # 🔥 RAG Stack
-        # ─────────────────────────────
-
-        # 1️⃣ BM25 (fewshot용)
-        self.bm25_index = BM25Index(
-            vector_repository=vector_repository,
-            collection_name="fewshot",
-        )
-
-        # 2️⃣ Retrieval Engine
-        self.retrieval_engine = RetrievalEngine(
-            vector_repository=vector_repository,
-            rerank_service=self.rerank_service,
-            bm25_index=self.bm25_index,
-        )
-
-        # 3️⃣ RAG Service
-        self.rag_service = RAGService(retrieval_engine=self.retrieval_engine)

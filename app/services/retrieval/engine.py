@@ -82,19 +82,23 @@ class RetrievalEngine:
                 for d, m in zip(final_docs, final_metas)
             )
 
-        except Exception:
+        except Exception as e:
+            from app.infra.vector.exceptions import VectorCollectionNotFound
+            if isinstance(e, VectorCollectionNotFound):
+                return ""
             logger.exception("Hybrid 실패 → 벡터 fallback")
-
-            vec_results = await self.vector_repository.search_by_text(
-                collection_name="fewshot",
-                query_text=question,
-                top_k=n,
-            )
-
-            return "\n---\n".join(
-                f"Q: {r[0]}\nSQL: {r[1].get('sql','')}"
-                for r in vec_results
-            )
+            try:
+                vec_results = await self.vector_repository.search_by_text(
+                    collection_name="fewshot",
+                    query_text=question,
+                    top_k=n,
+                )
+                return "\n---\n".join(
+                    f"Q: {r[0]}\nSQL: {r[1].get('sql','')}"
+                    for r in vec_results
+                )
+            except Exception:
+                return ""
 
     # ─────────────────────────────
     # Generic Strategy Retrieval
