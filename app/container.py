@@ -1,4 +1,5 @@
 # app/container.py
+# 서비스 컨테이너: 모든 서비스 인스턴스를 한 곳에서 생성하고 보관 (의존성 주입 컨테이너)
 
 from app.prompts.registry import PromptRegistry
 from app.providers.registry import ProviderRegistry
@@ -35,11 +36,9 @@ class ServiceContainer:
         conversation_repository: ConversationRepository,
         metadata_bundle: MetadataBundle,
     ):
-        # 🔹 Provider 기반 객체 생성
         _reranker_provider = provider_registry.get_reranker(settings.COHERE_MODEL)
         self.conversation_repository = conversation_repository
-      
-        # 🔹 Application Services
+
         self.llm_service = LLMService(
             llm_registry=provider_registry,
             prompt_registry=prompt_registry,
@@ -48,23 +47,19 @@ class ServiceContainer:
         self.rerank_service = RerankService(reranker=_reranker_provider)
 
         # ─────────────────────────────
-        # 🔥 RAG Stack
+        # RAG Stack (sql_generate_service보다 먼저 초기화)
         # ─────────────────────────────
-
-        # 1️⃣ BM25 (fewshot용)
         self.bm25_index = BM25Index(
             vector_repository=vector_repository,
             collection_name="fewshot",
         )
 
-        # 2️⃣ Retrieval Engine
         self.retrieval_engine = RetrievalEngine(
             vector_repository=vector_repository,
             rerank_service=self.rerank_service,
             bm25_index=self.bm25_index,
         )
 
-        # 3️⃣ RAG Service
         self.rag_service = RAGService(retrieval_engine=self.retrieval_engine)
 
         self.router_service = RouterService(llm_service=self.llm_service)

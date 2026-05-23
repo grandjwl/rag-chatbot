@@ -6,7 +6,7 @@ from typing import List
 
 from app.providers.registry import ProviderRegistry
 from app.prompts.registry import PromptRegistry
-from app.schemas.chat import ChatMessage
+from app.core.types import ChatMessage
 from app.core.config import settings
 from app.core.logging.logging_tags import LogTag
 from app.core.logging.request_context import get_request_id
@@ -105,8 +105,8 @@ class LLMService:
             # print("🔥 LLM 실제 호출 완료")
 
         except Exception as e:
-            print("💥 LLM 내부 예외 발생:", repr(e))
-            raise  # 🔥 반드시 다시 던져라 (RouterService로 전파)
+            logger.error("LLM call failed: %s", repr(e))
+            raise
 
         latency_ms = int((time.time() - start) * 1000)
 

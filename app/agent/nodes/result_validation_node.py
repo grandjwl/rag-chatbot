@@ -1,7 +1,7 @@
 # llmServer/app/agent/nodes/result_validation_node.py
 
 from typing import Dict
-from app.container.container import ServiceContainer
+from app.container import ServiceContainer
 
 
 class ResultValidationNode:

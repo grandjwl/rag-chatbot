@@ -7,7 +7,7 @@ import asyncio
 from google import genai
 from google.genai import types
 from app.providers.llm.base import BaseLLMProvider
-from app.schemas.chat import ChatMessage
+from app.core.types import ChatMessage
 
 from app.core.logging.logging_tags import LogTag
 from app.core.logging.request_context import get_request_id

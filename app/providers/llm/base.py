@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from typing import List
-from app.schemas.chat import ChatMessage
+from app.core.types import ChatMessage
 
 
 class BaseLLMProvider(ABC):

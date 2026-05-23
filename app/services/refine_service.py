@@ -1,10 +1,31 @@
 # llmServer/app/services/refine_service.py
 
-from app.utils import text_util
+from rapidfuzz import process, fuzz
 
-# 타입 지정용
 from app.services.rerank_service import RerankService
 from app.infra.vector.vector_repository import VectorRepository
+
+
+def _fuzzy_match(word: str, choices: list, threshold: int = 70) -> str:
+    if not word or not choices:
+        return None
+    match = process.extractOne(word, choices, scorer=fuzz.ratio)
+    if match and match[1] > threshold:
+        return match[0]
+    return None
+
+
+def _match_score(word: str, target: str) -> float:
+    if not word or not target:
+        return 0.0
+    match_count = sum(c in target for c in word)
+    return match_count / max(len(word), len(target))
+
+
+def _valid_part_number(word: str, target: str, threshold: float = 0.8) -> bool:
+    if len(word) <= 5:
+        return False
+    return _match_score(word, target) > threshold
 
 
 class RefineService:
@@ -113,9 +134,7 @@ class RefineService:
         for word in question.split():
             if len(word) >= 2:
                 # Utils를 사용하여 "어떻게" 하는지 감춤
-                matched_name = text_util.get_fuzzy_match(
-                    word, names, self.FUZZY_THRESHOLD
-                )
+                matched_name = _fuzzy_match(word, names, self.FUZZY_THRESHOLD)
                 if matched_name:
                     refined = refined.replace(word, matched_name)
         return refined
@@ -146,7 +165,7 @@ class RefineService:
                 # 2관문: 벡터 공간에서 비교했다면 -> 문자열로 세부 비교 (Utils 호출)
                 candidate_part = meta.get("original_id")
                 for word in question.split():
-                    if text_util.is_valid_part_number_match(word, candidate_part, threshold=0.8):
+                    if _valid_part_number(word, candidate_part, threshold=0.8):
                         if word.upper() != doc.upper():
                             refined = refined.replace(word, candidate_part)
 

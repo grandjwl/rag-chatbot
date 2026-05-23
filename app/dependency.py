@@ -1,6 +1,6 @@
 # app/dependency.py
 
-from app.container.container import ServiceContainer
+from app.container import ServiceContainer
 from app.prompts.registry import PromptRegistry
 from app.providers.registry import ProviderRegistry
 

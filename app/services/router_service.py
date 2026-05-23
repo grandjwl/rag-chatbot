@@ -1,6 +1,10 @@
 # llmServer/app/services/router_service.py
 
+import logging
+
 from app.services.llm_service import LLMService
+
+logger = logging.getLogger(__name__)
 
 
 class RouterService:
@@ -124,8 +128,7 @@ class RouterService:
             return "CHIT_CHAT"
 
         except Exception:
-            # 디버깅용
-            print("예외 발생, LLM 라우터 실패. 기본값 INVENTORY")
+            logger.warning("LLM router failed, fallback to INVENTORY")
             return "INVENTORY"
 
     def _build_prompt(self, question: str, ctx: str) -> str:
