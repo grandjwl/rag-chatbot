@@ -1,10 +1,13 @@
 # 환경변수 (절대 올리면 안 됨)
 .env
+.env.*
+!.env.example
 
 # Python
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
 .Python
 
 # 가상환경
@@ -16,12 +19,20 @@ env/
 logs/
 *.log
 
-# pytest
+# pytest / 커버리지
 .pytest_cache/
 .coverage
+htmlcov/
 
-# VSCode
+# 타입 체커
+.mypy_cache/
+.ruff_cache/
+
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
 
 # 빌드
 dist/

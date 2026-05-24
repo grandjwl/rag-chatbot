@@ -1,22 +1,27 @@
-asyncpg==0.31.0
-chromadb==1.5.2
-cohere==5.20.7
-email-validator==2.3.0
+# 서버
 fastapi==0.110.0
-google-genai==1.65.0
-httptools==0.7.1
-jaraco.collections==5.1.0
-langgraph==1.0.10
-openai==2.24.0
-pandas==2.3.3
-pip-chill==1.0.3
-platformdirs==4.2.2
-psycopg2-binary==2.9.11
+uvicorn[standard]
 pydantic-settings==2.12.0
+python-dotenv
+
+# AI / LLM
+google-genai==1.65.0
+cohere==5.20.7
+langgraph==1.0.10
+
+# 데이터베이스
+asyncpg==0.31.0
+psycopg2-binary==2.9.11
+chromadb==1.5.2
+
+# 검색 · 분석
 rank-bm25==0.2.2
 rapidfuzz==3.14.3
-# sentence-transformers==5.2.3 not used
-sqlalchemy==2.0.47
+pandas==2.3.3
 sqlglot==29.0.1
-# uvloop==0.22.1 not supported on windows
+
+# 유틸리티
+httptools==0.7.1
 watchfiles==1.1.1
+jaraco.collections==5.1.0
+platformdirs==4.2.2
