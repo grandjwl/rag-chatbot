@@ -37,6 +37,7 @@ class ServiceContainer:
         metadata_bundle: MetadataBundle,
     ):
         _reranker_provider = provider_registry.get_reranker(settings.COHERE_MODEL)
+        _embedding_provider = provider_registry.get_embedding(settings.EMBEDDING_MODEL)
         self.conversation_repository = conversation_repository
 
         self.llm_service = LLMService(
@@ -56,6 +57,7 @@ class ServiceContainer:
             vector_repository=vector_repository,
             rerank_service=self.rerank_service,
             bm25_indexes=self.bm25_indexes,
+            embedding_provider=_embedding_provider,
         )
 
         self.rag_service = RAGService(retrieval_engine=self.retrieval_engine)

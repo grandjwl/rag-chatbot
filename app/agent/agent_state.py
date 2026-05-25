@@ -13,6 +13,7 @@ class AgentState(TypedDict, total=False):
     # Memory
     refined_question: str
     conversation_history: List[Dict]
+    question_embedding: List[float]
 
     # Router
     intent: str

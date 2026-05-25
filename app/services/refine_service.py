@@ -45,6 +45,7 @@ class RefineService:
         return refined
 
     async def resolve(self, question: str) -> dict:
-        candidates = await self.engine.retrieve_entities(question, top_k=5)
+        question_embedding = await self.engine.embed_query(question)
+        candidates = await self.engine.retrieve_entities(question, top_k=5, query_embedding=question_embedding)
         refined = self._apply_corrections(question, candidates)
-        return {"refined_question": refined}
+        return {"refined_question": refined, "question_embedding": question_embedding}

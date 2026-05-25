@@ -1,7 +1,9 @@
 # llmServer/app/services/retrieval/engine.py
 
+from typing import List, Optional
 from app.services.rerank_service import RerankService
 from app.infra.vector.vector_repository import VectorRepository
+from app.providers.embedding.base import BaseEmbeddingProvider
 from app.core.logging import flow_logger as flow
 import logging
 
@@ -17,10 +19,16 @@ class RetrievalEngine:
         vector_repository: VectorRepository,
         rerank_service: RerankService,
         bm25_indexes: dict = None,
+        embedding_provider: BaseEmbeddingProvider = None,
     ):
         self.vector_repository = vector_repository
         self.rerank_service = rerank_service
         self.bm25_indexes = bm25_indexes or {}
+        self.embedding_provider = embedding_provider
+
+    async def embed_query(self, text: str) -> List[float]:
+        embeddings = await self.embedding_provider.embed([text])
+        return embeddings[0]
 
     # ─────────────────────────────
     # RRF 병합
@@ -40,12 +48,26 @@ class RetrievalEngine:
     # ─────────────────────────────
     # 공통 하이브리드 검색
     # ─────────────────────────────
-    async def _hybrid_search(self, collection_name: str, query: str, fetch_k: int):
-        vec_results = await self.vector_repository.search_by_text(
-            collection_name=collection_name,
-            query_text=query,
-            top_k=fetch_k,
-        )
+    async def _hybrid_search(
+        self,
+        collection_name: str,
+        query: str,
+        fetch_k: int,
+        *,
+        query_embedding: Optional[List[float]] = None,
+    ):
+        if query_embedding is not None:
+            vec_results = await self.vector_repository.search(
+                collection_name=collection_name,
+                query_embedding=query_embedding,
+                top_k=fetch_k,
+            )
+        else:
+            vec_results = await self.vector_repository.search_by_text(
+                collection_name=collection_name,
+                query_text=query,
+                top_k=fetch_k,
+            )
         if not vec_results:
             return [], {}
 
@@ -71,9 +93,9 @@ class RetrievalEngine:
     # ─────────────────────────────
     # Fewshot Hybrid
     # ─────────────────────────────
-    async def retrieve_fewshot(self, question: str, n: int = 1):
+    async def retrieve_fewshot(self, question: str, n: int = 1, *, query_embedding: Optional[List[float]] = None):
         try:
-            merged, doc_meta_map = await self._hybrid_search("fewshot", question, n * 5)
+            merged, doc_meta_map = await self._hybrid_search("fewshot", question, n * 5, query_embedding=query_embedding)
             if not merged:
                 flow.log_rag_scores("fewshot", 0.0)
                 return ""
@@ -111,9 +133,9 @@ class RetrievalEngine:
     # ─────────────────────────────
     # Entities (refine용 raw 결과 반환)
     # ─────────────────────────────
-    async def retrieve_entities(self, question: str, top_k: int = 5):
+    async def retrieve_entities(self, question: str, top_k: int = 5, *, query_embedding: Optional[List[float]] = None):
         try:
-            merged, doc_meta_map = await self._hybrid_search("refine_store", question, top_k * 3)
+            merged, doc_meta_map = await self._hybrid_search("refine_store", question, top_k * 3, query_embedding=query_embedding)
             if not merged:
                 return []
 
@@ -135,10 +157,10 @@ class RetrievalEngine:
     # ─────────────────────────────
     # Generic Strategy Retrieval (하이브리드 통일)
     # ─────────────────────────────
-    async def retrieve(self, strategy, query: str, n: int = None):
+    async def retrieve(self, strategy, query: str, n: int = None, *, query_embedding: Optional[List[float]] = None):
         top_n = n if n is not None else strategy.n
         try:
-            merged, doc_meta_map = await self._hybrid_search(strategy.collection, query, top_n * 3)
+            merged, doc_meta_map = await self._hybrid_search(strategy.collection, query, top_n * 3, query_embedding=query_embedding)
             if not merged:
                 return ""
 

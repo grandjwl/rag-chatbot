@@ -17,24 +17,17 @@ class RAGService:
     def __init__(self, retrieval_engine: RetrievalEngine):
         self.engine = retrieval_engine
 
-    async def build(self, question: str) -> str:
+    async def build(self, question: str, question_embedding=None) -> str:
 
-        tasks = []
+        # refine에서 이미 embed한 벡터를 재사용할 수 있으면 재사용 (질문 미변경 시)
+        query_embedding = question_embedding if question_embedding is not None else await self.engine.embed_query(question)
 
-        # 1️⃣ Few-shot
-        tasks.append(self.engine.retrieve_fewshot(question, n=1))
-
-        # 2️⃣ Bizterm
-        tasks.append(
-            self.engine.retrieve(BiztermStrategy(), question)
+        results = await asyncio.gather(
+            self.engine.retrieve_fewshot(question, n=1, query_embedding=query_embedding),
+            self.engine.retrieve(BiztermStrategy(), question, query_embedding=query_embedding),
+            self.engine.retrieve(TableSchemaStrategy(), question, query_embedding=query_embedding),
+            return_exceptions=True,
         )
-
-        # 3️⃣ Table_Schema
-        tasks.append(
-            self.engine.retrieve(TableSchemaStrategy(), question)
-        )
-
-        results = await asyncio.gather(*tasks, return_exceptions=True)
         processed = []
 
         for idx, r in enumerate(results):

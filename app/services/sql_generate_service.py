@@ -64,7 +64,9 @@ class SQLGenerateService:
         # ------------------------------------------------------------
         # 2️⃣ RAG 컨텍스트 구성 (병렬화)
         # ------------------------------------------------------------
-        rag_section = await self.rag_service.build(question=question)
+        stored_embedding = state.get("question_embedding")
+        reuse_embedding = stored_embedding if (stored_embedding is not None and question == state.get("question")) else None
+        rag_section = await self.rag_service.build(question=question, question_embedding=reuse_embedding)
 
         # ------------------------------------------------------------
         # 3️⃣ 스키마 + 데이터 기간
