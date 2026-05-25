@@ -74,11 +74,8 @@ def build_graph(container):
         error_type = state.get("error_type")
 
         if error_type:
-            state["retry_count"] = retry_count + 1
-
-            if state["retry_count"] >= MAX_RETRY:
+            if retry_count >= MAX_RETRY:
                 return "fail"
-
             return "retry"
 
         return "success"
@@ -103,11 +100,8 @@ def build_graph(container):
         retry_count = state.get("retry_count", 0)
 
         if anomalies:
-            state["retry_count"] = retry_count + 1
-
-            if state["retry_count"] >= MAX_RETRY:
+            if retry_count >= MAX_RETRY:
                 return "fail"
-
             return "retry"
 
         return "success"
