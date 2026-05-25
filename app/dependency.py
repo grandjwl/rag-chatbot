@@ -34,6 +34,7 @@ def create_provider_registry() -> ProviderRegistry:
         settings.LLM_MODEL,
         settings.router_model,
         settings.sql_model,
+        settings.sql_premium_model,
         settings.answer_model,
         settings.chitchat_model,
     }

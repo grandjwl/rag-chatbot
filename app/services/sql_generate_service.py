@@ -33,6 +33,7 @@ class SQLGenerateService:
     async def generate(self, state: Dict[str, Any]) -> Dict[str, Any]:
 
         question: str = state["refined_question"]
+        retry_count = state.get("retry_count", 0)
         error_history = state.get("error_history", [])
 
         last_error: Optional[str] = (
@@ -89,7 +90,7 @@ class SQLGenerateService:
         # 5️⃣ LLM 호출
         # ------------------------------------------------------------
         try:
-            raw_sql = await self.llm_service.generate_sql(user_prompt)
+            raw_sql = await self.llm_service.generate_sql(user_prompt, premium=(retry_count >= 2))
         except Exception as e:
             logger.exception("LLM SQL 생성 실패")
             return {

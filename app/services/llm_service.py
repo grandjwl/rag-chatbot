@@ -21,9 +21,9 @@ class LLMService:
         self.llm_registry = llm_registry
         self.prompt_registry = prompt_registry
 
-        # 모델 이름은 config에서 가져온다
         self.router_model = settings.router_model
         self.sql_model = settings.sql_model
+        self.sql_premium_model = settings.sql_premium_model
         self.answer_model = settings.answer_model
         self.chitchat_model = settings.chitchat_model
 
@@ -39,10 +39,11 @@ class LLMService:
             log_tag=LogTag.ROUTER,
         )
 
-    async def generate_sql(self, prompt: str) -> str:
+    async def generate_sql(self, prompt: str, premium: bool = False) -> str:
+        model = self.sql_premium_model if premium else self.sql_model
         return await self._generate_internal(
             prompt=prompt,
-            model_name=self.sql_model,
+            model_name=model,
             system_prompt=self.prompt_registry.get_sql_prompt(),
             log_tag=LogTag.SQL_GENERATION,
         )
