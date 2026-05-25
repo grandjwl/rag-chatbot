@@ -103,11 +103,18 @@ async def create_metadata_bundle(rdb_repository) -> dict:
 
 
 # -----------------------------
-# 최종 Container
+# 최종 Container (싱글턴 — 서버 생애주기 동안 1회 생성)
 # -----------------------------
+
+_container: ServiceContainer | None = None
 
 
 async def get_container() -> ServiceContainer:
+    global _container
+    if _container is not None:
+        return _container
+
+    import asyncio
 
     prompt_registry = PromptRegistry()
     provider_registry = create_provider_registry()
@@ -130,8 +137,8 @@ async def get_container() -> ServiceContainer:
         metadata_bundle=metadata_bundle,
     )
 
-    # 🔥 BM25 초기 구축
-    await container.bm25_index.build()
+    await asyncio.gather(*[idx.build() for idx in container.bm25_indexes.values()])
 
-    return container
+    _container = container
+    return _container
 
