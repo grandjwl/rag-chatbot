@@ -2,7 +2,8 @@
 
 class BaseStrategy:
     collection = ""
-    threshold = 0.05
+    threshold = 0.0
+    n = 3
 
     def format(self, docs, metas):
         raise NotImplementedError
@@ -10,7 +11,8 @@ class BaseStrategy:
 
 class BiztermStrategy(BaseStrategy):
     collection = "bizterm_store"
-    threshold = 0.25
+    threshold = 0.0
+    n = 5
 
     def format(self, docs, metas):
         return "\n".join(
@@ -21,7 +23,8 @@ class BiztermStrategy(BaseStrategy):
 
 class TableSchemaStrategy(BaseStrategy):
     collection = "table_schema_store"
-    threshold = 0.2
+    threshold = 0.0
+    n = 7
 
     def format(self, docs, metas):
         return "\n".join(docs)

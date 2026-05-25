@@ -12,55 +12,17 @@ logger = logging.getLogger(__name__)
 
 
 class RAGService:
-    """
-    ============================================================
-    [Domain Role]
-    SQL 생성 보조 컨텍스트 생성 서비스.
-
-    - Few-shot 예시
-    - 동의어 정보
-    - 비즈니스 용어 정의
-    - 관련 테이블 스키마
-    - 에러 해결 힌트
-    - 질문 의도 힌트
-
-    이 서비스는:
-    - SQL을 생성하지 않음
-    - retry를 수행하지 않음
-    - state를 수정하지 않음
-    - 실패 시 빈 문자열 반환 (Soft-Fail)
-
-    ============================================================
-    [Input]
-    - question: str
-    - synonym_hint: str
-    - last_error: str
-
-    ============================================================
-    [Output]
-    - str (프롬프트 삽입용 RAG 텍스트 블록)
-
-    ============================================================
-    [Failure Policy]
-    - 개별 전략 실패 → 로그 기록 후 빈 문자열 처리
-    - 전체 실패 → 빈 문자열 반환
-    ============================================================
-    """
+    """SQL 생성 보조 컨텍스트(few-shot, 비즈니스 용어, 테이블 스키마)를 병렬로 조회해 반환한다."""
 
     def __init__(self, retrieval_engine: RetrievalEngine):
         self.engine = retrieval_engine
 
-    async def build(
-        self,
-        question: str,
-        synonym_hint: str = "",
-        last_error: str = "",
-    ) -> str:
+    async def build(self, question: str) -> str:
 
         tasks = []
 
         # 1️⃣ Few-shot
-        tasks.append(self.engine.retrieve_fewshot(question))
+        tasks.append(self.engine.retrieve_fewshot(question, n=1))
 
         # 2️⃣ Bizterm
         tasks.append(

@@ -46,18 +46,16 @@ class ServiceContainer:
 
         self.rerank_service = RerankService(reranker=_reranker_provider)
 
-        # ─────────────────────────────
-        # RAG Stack (sql_generate_service보다 먼저 초기화)
-        # ─────────────────────────────
-        self.bm25_index = BM25Index(
-            vector_repository=vector_repository,
-            collection_name="fewshot",
-        )
+        _bm25_collections = ["fewshot", "bizterm_store", "table_schema_store", "refine_store"]
+        self.bm25_indexes = {
+            name: BM25Index(vector_repository=vector_repository, collection_name=name)
+            for name in _bm25_collections
+        }
 
         self.retrieval_engine = RetrievalEngine(
             vector_repository=vector_repository,
             rerank_service=self.rerank_service,
-            bm25_index=self.bm25_index,
+            bm25_indexes=self.bm25_indexes,
         )
 
         self.rag_service = RAGService(retrieval_engine=self.retrieval_engine)
@@ -70,11 +68,7 @@ class ServiceContainer:
             conversation_repository=conversation_repository
         )
 
-        self.refine_service = RefineService(
-            refine_cache=metadata_bundle.refine_cache,
-            vector_repository=vector_repository,
-            reranker=self.rerank_service,
-        )
+        self.refine_service = RefineService(engine=self.retrieval_engine)
 
         self.sql_generate_service = SQLGenerateService(
             llm_service=self.llm_service,
