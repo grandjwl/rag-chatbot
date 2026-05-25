@@ -48,7 +48,7 @@ def build_graph(container):
     def route_by_intent(state):
         intent = state.get("intent", "INVENTORY")
 
-        if intent in ("CHIT_CHAT", "TECH_SALES"):
+        if intent == "CHIT_CHAT":
             return "answer"
 
         return "sql_gen"

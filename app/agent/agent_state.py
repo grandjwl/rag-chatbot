@@ -12,10 +12,7 @@ class AgentState(TypedDict, total=False):
 
     # Memory
     refined_question: str
-    structured_memory: Dict
-
-    # Refine
-    synonym_hint: str
+    conversation_history: List[Dict]
 
     # Router
     intent: str

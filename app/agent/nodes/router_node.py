@@ -11,7 +11,10 @@ class RouterNode:
         self.router_service = container.router_service
 
     async def __call__(self, state: Dict) -> Dict:
-        intent = await self.router_service.route(state["refined_question"])
+        intent = await self.router_service.route(
+            state["refined_question"],
+            state.get("conversation_history", []),
+        )
 
         flow.log_route(intent)
 
