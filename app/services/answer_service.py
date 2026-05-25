@@ -9,51 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class AnswerService:
-    """
-    ============================================================
-    [Domain Role]
-    최종 자연어 응답 생성 서비스 (Presentation Layer)
-
-    역할:
-        - CHIT_CHAT 분기 처리
-        - DB 에러 메시지 사용자 친화 변환
-        - 빈 결과 안내
-        - DB 결과 기반 자연어 생성
-
-    ============================================================
-    🔥 Graph에서 관리할 영역
-
-    이 서비스는:
-        ❌ retry 판단하지 않음
-        ❌ error_history 수정하지 않음
-        ❌ retry_count 변경하지 않음
-        ❌ state를 직접 mutate하지 않음
-
-    Graph는:
-        - result_anomalies 발생 시 재시도 여부 결정
-        - 최종 성공/실패 상태 확정
-        - persist 호출 여부 결정
-
-    ============================================================
-    [Input State Fields]
-
-    - intent: str
-    - question: str
-    - refined_question: str
-    - rows: List
-    - db_result: str
-    - explain_meta: dict
-    - result_anomalies: List[str]
-
-    ============================================================
-    [Output]
-
-    {
-        "final_answer": str
-    }
-
-    ============================================================
-    """
+    """CHIT_CHAT 및 DB 결과 기반 최종 자연어 응답 생성."""
 
     def __init__(self, llm_service: LLMService):
         self.llm = llm_service
@@ -77,7 +33,7 @@ class AnswerService:
         db_res = state.get("db_result", "")
         if isinstance(db_res, str) and "Error" in db_res:
             return {
-                "final_answer": f"❌ 데이터 조회 중 문제가 발생했습니다.\n\n{db_res}"
+                "final_answer": "❌ 데이터 조회 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."
             }
 
         # --------------------------------------------------

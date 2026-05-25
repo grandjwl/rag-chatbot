@@ -11,72 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class ExecuteDBService:
-    """
-    ============================================================
-    [Domain Role]
-    생성된 SQL을 실제 DB에서 실행하기 전 최종 검증 및 실행을 담당하는 Gatekeeper 서비스.
-
-    역할:
-        1️⃣ Basic Validation (보안 / 문법)
-        2️⃣ Static Validation (논리 / 스키마 무결성)
-        3️⃣ LIMIT 보호
-        4️⃣ Schema 자동 주입
-        5️⃣ 실제 DB 실행
-        6️⃣ 실행 메타데이터 생성
-
-    ============================================================
-    🔥 Graph에서 관리할 영역 (이 서비스 바깥 책임)
-
-    Graph는 다음을 관리해야 함:
-
-        - retry_count 최종 정책
-        - retry 가능 여부 판단
-        - max retry 초과 시 최종 상태 결정
-        - retry_strategy 누적 관리
-        - error_history 통합 관리
-        - result_validation 이후 재시도 여부 결정
-
-    이 서비스는:
-        ❌ retry 여부를 최종 판단하지 않음
-        ❌ 전체 플로우 제어하지 않음
-        ✅ 단일 실행 단위에 대한 결과만 반환
-
-    ============================================================
-    [Graph Input State Fields]
-
-    - sql_query: str
-    - retry_count: int
-    - error_history: List[str]
-
-    ============================================================
-    [Graph Output State Fields]
-
-    성공:
-    {
-        "rows": List[dict],
-        "db_result": "SUCCESS",
-        "retry_count": int,
-        "retry_strategy": None,
-        "error_type": None,
-        "explain_meta": dict
-    }
-
-    실패 (재시도 가능):
-    {
-        "db_result": "Error: ...",
-        "error_history": List[str],
-        "retry_count": int+1,
-        "retry_strategy": str,
-        "error_type": "security" | "static" | "runtime"
-    }
-
-    실패 (재시도 초과):
-    {
-        "error_type": "max_retry"
-    }
-
-    ============================================================
-    """
+    """SQL 보안/정적 검증 후 실제 DB에서 실행하는 Gatekeeper 서비스. retry 판단은 Graph 레벨 담당."""
 
     MAX_RETRY = 3
 
@@ -99,8 +34,6 @@ class ExecuteDBService:
     # =====================================================
 
     async def execute(self, state: Dict) -> Dict:
-        # 디버깅용
-        # print("db_execute_service로 전달된 state:", state)
         raw_sql = state.get("sql_query", "")
 
         if isinstance(raw_sql, dict):
@@ -129,31 +62,21 @@ class ExecuteDBService:
         # 1️⃣ BASIC VALIDATION
         valid, reason = self._validate_basic(sql)
         if not valid:
-            # 디버깅용
-            # print("Basic validation failed:", reason)
             return self._retry(reason, error_history, retry_count, None, "security")
 
         # 2️⃣ STATIC VALIDATION
-        # 디버깅용
-        # print("SQL 실행 전 Static Validation 시작...")
-        # print("검사 대상 SQL:", sql)
         valid, reason, strategy = self._validate_static(sql)
         if not valid:
-            # 디버깅용
-            # print("Static validation failed:", reason)
             return self._retry(reason, error_history, retry_count, strategy, "static")
 
         # 3️⃣ LIMIT PROTECTION
         safe_sql = self._apply_limit(sql)
         safe_sql = self._apply_schema(safe_sql)
-        # 디버깅용
-        # print("최종 실행 SQL:", safe_sql)
+
         try:
             rows = await self.rdb_repository.fetch(safe_sql)
 
             explain_meta = self._build_explain_meta(sql, rows)
-            # 디버깅용
-            # print("쿼리 실행 메타:", explain_meta)
             return {
                 "rows": rows,
                 "db_result": "SUCCESS",

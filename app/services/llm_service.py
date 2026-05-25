@@ -96,13 +96,8 @@ class LLMService:
                 ChatMessage(role="system", content=system_prompt),
                 ChatMessage(role="user", content=prompt),
             ]
-            # 디버깅용 
-            # print("🔥 LLM 실제 호출 직전")
 
             response_text = await provider.generate(messages)
-
-            # 디버깅용
-            # print("🔥 LLM 실제 호출 완료")
 
         except Exception as e:
             logger.error("LLM call failed: %s", repr(e))

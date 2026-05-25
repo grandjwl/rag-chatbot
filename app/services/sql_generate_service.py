@@ -13,43 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class SQLGenerateService:
-    """
-    ============================================================
-    [Domain Role]
-    자연어 질문 → PostgreSQL SELECT 쿼리 생성 서비스.
-
-    - LLM 기반 SQL 생성
-    - Retry 전략 힌트 반영
-    - RAG 컨텍스트 병합
-    - 스키마 + 데이터 기간 삽입
-    - 최소 SQL 안전 검증
-
-    ============================================================
-    [Graph Input State Fields]
-
-    필수:
-    - refined_question: str
-
-    선택:
-    - error_history: List[str]
-    - synonym_hint: str
-    - retry_count: int
-    - retry_strategy: List[str]
-
-    ============================================================
-    [Graph Output State Fields]
-
-    정상:
-    - sql_query: str
-    - error_type: None
-
-    실패:
-    - sql_query: ""
-    - error_type: "INVALID_SQL_GENERATED" | "LLM_SQL_ERROR"
-
-    retry 여부 판단은 Graph 레벨에서 수행한다.
-    ============================================================
-    """
+    """자연어 질문 → PostgreSQL SELECT 쿼리 생성. retry 여부 판단은 Graph 레벨에서 수행한다."""
 
     def __init__(
         self,
@@ -70,7 +34,6 @@ class SQLGenerateService:
 
         question: str = state["refined_question"]
         error_history = state.get("error_history", [])
-        synonym_hint = state.get("synonym_hint", "")
 
         last_error: Optional[str] = (
             error_history[-1] if error_history else None
@@ -100,11 +63,7 @@ class SQLGenerateService:
         # ------------------------------------------------------------
         # 2️⃣ RAG 컨텍스트 구성 (병렬화)
         # ------------------------------------------------------------
-        rag_section = await self.rag_service.build(
-            question=question,
-            synonym_hint=synonym_hint,
-            last_error=last_error or "",
-        )
+        rag_section = await self.rag_service.build(question=question)
 
         # ------------------------------------------------------------
         # 3️⃣ 스키마 + 데이터 기간
