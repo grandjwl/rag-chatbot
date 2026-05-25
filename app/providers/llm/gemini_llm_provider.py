@@ -39,31 +39,37 @@ class GeminiLLMProvider(BaseLLMProvider):
                     contents=contents,
                 )
             )
-        except Exception:
-            logger.exception("Gemini API call failed")
+        except Exception as e:
+            lat_ms = int((time.time() - start) * 1000)
+            logger.error(
+                "api",
+                extra={
+                    "kind":   "LLM",
+                    "req":    request_id,
+                    "model":  self.model,
+                    "lat_ms": lat_ms,
+                    "error":  type(e).__name__,
+                },
+            )
             raise
 
-        latency_ms = int((time.time() - start) * 1000)
+        lat_ms = int((time.time() - start) * 1000)
         usage = getattr(response, "usage", None)
 
-        prompt_tokens = getattr(usage, "prompt_tokens", None)
-        completion_tokens = getattr(usage, "candidates_tokens", None)
-        total_tokens = getattr(usage, "total_tokens", None)
-
-        cost = calculate_gemini_cost(prompt_tokens, completion_tokens)
-
+        in_tokens  = getattr(usage, "prompt_tokens", None)
+        out_tokens = getattr(usage, "candidates_tokens", None)
+        cost_usd   = calculate_gemini_cost(self.model, in_tokens, out_tokens)
 
         logger.info(
-            "Gemini API call",
+            "api",
             extra={
-                "tag": LogTag.API_LLM,
-                "request_id": request_id,
-                "model": self.model,
-                "latency_ms": latency_ms,
-                "prompt_tokens": prompt_tokens,
-                "completion_tokens": completion_tokens,
-                "total_tokens": total_tokens,
-                "cost_usd": cost,
+                "kind":      "LLM",
+                "req":       request_id,
+                "model":     self.model,
+                "lat_ms":    lat_ms,
+                "in_tokens":  in_tokens,
+                "out_tokens": out_tokens,
+                "cost_usd":  cost_usd,
             },
         )
 

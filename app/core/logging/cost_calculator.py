@@ -1,22 +1,20 @@
 # app/core/logging/cost_calculator.py
 
+# USD per 1K tokens (in, out) — Google AI 요금표 기준 (2025년 상반기)
+_PRICES: dict[str, tuple[float, float]] = {
+    "gemini-2.5-flash-lite": (0.0001, 0.0004),
+    "gemini-2.5-flash":      (0.0003, 0.0025),
+    "gemini-2.5-pro":        (0.00125, 0.010),
+}
+_DEFAULT = (0.0003, 0.0025)  # flash 단가 fallback
+
+
 def calculate_gemini_cost(
-    prompt_tokens: int | None,
-    completion_tokens: int | None,
+    model_name: str,
+    in_tokens: int | None,
+    out_tokens: int | None,
 ) -> float | None:
-    """
-    gemini-2.5-flash 기준 대략적인 비용 계산 (예시 단가)
-    실제 단가는 Google 요금표 확인 후 수정해야 함
-    """
-
-    if prompt_tokens is None or completion_tokens is None:
+    if in_tokens is None or out_tokens is None:
         return None
-
-    # 🔥 예시 단가 (가짜 수치, 실제 요금으로 수정 필요)
-    PROMPT_COST_PER_1K = 0.0005
-    COMPLETION_COST_PER_1K = 0.0015
-
-    prompt_cost = (prompt_tokens / 1000) * PROMPT_COST_PER_1K
-    completion_cost = (completion_tokens / 1000) * COMPLETION_COST_PER_1K
-
-    return round(prompt_cost + completion_cost, 6)
+    in_price, out_price = _PRICES.get(model_name, _DEFAULT)
+    return round((in_tokens / 1000) * in_price + (out_tokens / 1000) * out_price, 6)

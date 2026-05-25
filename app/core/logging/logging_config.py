@@ -4,7 +4,7 @@ import logging
 import sys
 import os
 from logging.handlers import RotatingFileHandler
-from app.core.logging.logging_json_formatter import JsonFormatter
+from app.core.logging.logging_json_formatter import CompactApiFormatter
 
 
 def setup_logging():
@@ -20,7 +20,7 @@ def setup_logging():
         backupCount=5,
         encoding="utf-8",
     )
-    json_handler.setFormatter(JsonFormatter())
+    json_handler.setFormatter(CompactApiFormatter())
 
     # root는 WARNING — uvicorn/chromadb/asyncpg/httpx 등 노이즈 차단
     root = logging.getLogger()

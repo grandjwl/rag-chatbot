@@ -2,9 +2,11 @@
 
 import asyncio
 import logging
+import time
 from typing import List
 import cohere
 from app.providers.reranker.base import BaseRerankerProvider
+from app.core.logging.request_context import get_request_id
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,8 @@ class CohereRerankerProvider(BaseRerankerProvider):
         if not docs:
             return []
 
+        request_id = get_request_id()
+        start = time.time()
         loop = asyncio.get_running_loop()
 
         try:
@@ -35,12 +39,31 @@ class CohereRerankerProvider(BaseRerankerProvider):
             )
 
             scores = [0.0] * len(docs)
-
             for result in response.results:
                 scores[result.index] = result.relevance_score
+
+            logger.info(
+                "api",
+                extra={
+                    "kind":   "RERANK",
+                    "req":    request_id,
+                    "model":  self.model_name,
+                    "lat_ms": int((time.time() - start) * 1000),
+                    "docs":   len(docs),
+                },
+            )
 
             return scores
 
         except Exception as e:
-            logger.exception("Cohere Reranking API error")
+            logger.error(
+                "api",
+                extra={
+                    "kind":   "RERANK",
+                    "req":    request_id,
+                    "model":  self.model_name,
+                    "lat_ms": int((time.time() - start) * 1000),
+                    "error":  type(e).__name__,
+                },
+            )
             raise RuntimeError("Rerank failed") from e
