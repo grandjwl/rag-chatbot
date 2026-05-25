@@ -21,7 +21,7 @@ class GeminiLLMProvider(BaseLLMProvider):
         self.client = genai.Client(api_key=api_key)
         self.model = model_name
 
-    async def generate(self, messages: list[ChatMessage]):
+    async def generate(self, messages: list[ChatMessage], tag: str = "LLM"):
 
         request_id = get_request_id()
         start = time.time()
@@ -44,7 +44,7 @@ class GeminiLLMProvider(BaseLLMProvider):
             logger.error(
                 "api",
                 extra={
-                    "kind":   "LLM",
+                    "kind":   tag,
                     "req":    request_id,
                     "model":  self.model,
                     "lat_ms": lat_ms,
@@ -54,16 +54,16 @@ class GeminiLLMProvider(BaseLLMProvider):
             raise
 
         lat_ms = int((time.time() - start) * 1000)
-        usage = getattr(response, "usage", None)
+        usage = getattr(response, "usage_metadata", None)
 
-        in_tokens  = getattr(usage, "prompt_tokens", None)
-        out_tokens = getattr(usage, "candidates_tokens", None)
+        in_tokens  = getattr(usage, "prompt_token_count", None)
+        out_tokens = getattr(usage, "candidates_token_count", None)
         cost_usd   = calculate_gemini_cost(self.model, in_tokens, out_tokens)
 
         logger.info(
             "api",
             extra={
-                "kind":      "LLM",
+                "kind":      tag,
                 "req":       request_id,
                 "model":     self.model,
                 "lat_ms":    lat_ms,

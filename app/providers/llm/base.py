@@ -11,5 +11,6 @@ class BaseLLMProvider(ABC):
     async def generate(
         self,
         messages: List[ChatMessage],
+        tag: str = "LLM",
     ) -> str:
         pass

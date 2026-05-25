@@ -51,7 +51,7 @@
 #### 모델 선정
 - 무료 API 모델 중심으로 검토했고, 공개 벤치마크와 도메인 샘플 테스트를 기준으로 판단했습니다.
 - **LLM** — SQL 생성 정확도와 한국어 이해도가 우수한 **Gemini 2.5 Flash**를 선정했습니다.
-- **임베딩** — 동일 Gemini 생태계와의 일관성, 그리고 다국어 처리 성능을 고려해 **Gemini embedding-v1**을 선정했습니다.
+- **임베딩** — 동일 Gemini 생태계와의 일관성, 그리고 다국어 처리 성능을 고려해 **Gemini embedding-001**을 선정했습니다.
 - **리랭커** — 한국어 포함 다국어 검색 품질이 검증된 **Cohere rerank-multilingual-v3.0**을 적용해 RAG 검색 결과의 정확도를 보강했습니다.
 <br><br>
 
@@ -65,7 +65,7 @@
 - 사용자의 질문은 아래 순서로 처리됩니다.
    > **Memory → Refine → Router → (SQL Gen → Execute DB → Validate) → Answer → Save**
 - **전처리 단계 (Memory · Refine · Router)** — 이전 대화 맥락을 주입하고, 오타나 파트넘버 오기재를 보정한 뒤, 질문 유형을 분류합니다. `INVENTORY` 질의는 SQL 생성으로, `CHIT_CHAT`은 답변 생성으로 분기됩니다.
-- **SQL 생성 및 실행 단계 (SQL Gen · Execute DB · Validate)** — RAG로 fewshot 예시·비즈니스 용어·스키마 정보를 검색해 LLM이 SQL을 생성하고, 5단계 정적 검증을 거쳐 PostgreSQL에 실행합니다. 결과의 NULL 비율·음수 매출·극단값 등 비즈니스 이상치를 검사해, 이상이 감지되면 SQL Gen으로 되돌아갑니다.
+- **SQL 생성 및 실행 단계 (SQL Gen · Execute DB · Validate)** — RAG로 fewshot 예시·비즈니스 용어·스키마 정보를 검색해 LLM이 SQL을 생성하고, 7단계 정적 검증을 거쳐 PostgreSQL에 실행합니다. 결과의 NULL 비율·음수 매출·극단값 등 비즈니스 이상치를 검사해, 이상이 감지되면 SQL Gen으로 되돌아갑니다.
 - **응답 단계 (Answer · Save)** — 실제 DB 조회 결과를 FACT로 LLM에 주입해 자연어 답변을 생성하고, 질문·답변·SQL·처리시간을 DB에 저장해 다음 대화의 기억으로 활용합니다.
    > 재시도는 최대 3회까지 수행되며, 초과 시 사용자에게 에러 메시지를 안내합니다.
 <br><br>
@@ -77,7 +77,7 @@
 - **Hallucination 방지** — 답변 생성 시 LLM에게 실제 DB 조회 결과만을 FACT로 명시해, 없는 데이터를 지어내는 것을 차단했습니다.
 - **대화 맥락 기억** — 최근 5턴(질문·답변)을 그대로 LLM 프롬프트에 주입하는 단순 구조를 채택했습니다. 복잡한 재조립·대명사 치환 로직 없이도 맥락 유지 정확도와 유지보수성을 모두 확보했습니다. 모든 대화는 별도 스키마에 영구 저장되어 다음 턴의 맥락으로 활용됩니다.
 - **Provider Registry 패턴** — LLM·임베딩·리랭커를 각각 추상 인터페이스로 분리하고 단일 레지스트리에서 관리합니다. `dependency.py` 한 곳만 수정하면 다른 모델로 교체할 수 있는 구조입니다.
-- **이중 로그 스트림** — 기술 로그(JSON, `logs/app.log`)와 비즈니스 흐름 로그(텍스트, `logs/flow.log`)를 분리해, 운영 중 파이프라인 흐름(`REQUEST→QUESTION→ROUTE→SQL→DB→ANSWER→DONE`)을 한눈에 추적할 수 있습니다.
+- **이중 로그 스트림** — API 호출 로그(한 줄 텍스트, `logs/app.log`)와 비즈니스 흐름 로그(텍스트, `logs/flow.log`)를 분리해, 운영 중 파이프라인 흐름(`REQUEST→QUESTION→ROUTE→SQL→DB→ANSWER→DONE`)을 한눈에 추적할 수 있습니다.
 - **사용자 피드백 + RAG score 기록** — 답변 직후 y/n 피드백을 `conversations.feedback`(SMALLINT: 1=좋음, 0=나쁨, NULL=미응답)에 저장하고, 검색 단계별 rerank score를 `rag_scores`(JSONB)로 함께 적재합니다. 누적 데이터는 향후 임계값 튜닝의 근거로 활용됩니다.
 <br><br>
 

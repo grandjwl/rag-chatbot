@@ -98,7 +98,7 @@ class LLMService:
                 ChatMessage(role="user", content=prompt),
             ]
 
-            response_text = await provider.generate(messages)
+            response_text = await provider.generate(messages, tag=log_tag)
 
         except Exception as e:
             logger.error("LLM call failed: %s", repr(e))

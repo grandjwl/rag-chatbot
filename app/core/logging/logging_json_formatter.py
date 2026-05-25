@@ -24,8 +24,9 @@ class CompactApiFormatter(logging.Formatter):
 
         ts = datetime.now(timezone.utc).strftime("%H:%M:%S")
 
-        if kind in ("LLM", "EMBED", "RERANK"):
-            return self._format_api(ts, kind, d)
+        _LLM_KINDS = {"LLM", "SQL", "ANS", "RTR", "CHT"}
+        if kind in _LLM_KINDS | {"EMBED", "RERANK"}:
+            return self._format_api(ts, kind, d, llm_kinds=_LLM_KINDS)
 
         # API 호출이 아닌 로그 (WARNING/ERROR만 통과)
         if record.levelno < logging.WARNING:
@@ -33,7 +34,7 @@ class CompactApiFormatter(logging.Formatter):
 
         return f"{ts} {'ERR' if record.levelno >= logging.ERROR else 'WARN':<5} {record.name} — {record.getMessage()}"
 
-    def _format_api(self, ts: str, kind: str, d: dict) -> str:
+    def _format_api(self, ts: str, kind: str, d: dict, llm_kinds: set = frozenset({"LLM"})) -> str:
         model = d.get("model", "?")
         lat   = d.get("lat_ms", "?")
         req   = d.get("req", "")[:8]     # 앞 8자만
@@ -44,7 +45,7 @@ class CompactApiFormatter(logging.Formatter):
 
         if err:
             detail = f"ERROR={err}"
-        elif kind == "LLM":
+        elif kind in llm_kinds:
             in_t  = d.get("in_tokens",  "?")
             out_t = d.get("out_tokens", "?")
             cost  = d.get("cost_usd")

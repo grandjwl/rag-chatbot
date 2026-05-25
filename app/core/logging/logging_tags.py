@@ -3,12 +3,12 @@
 
 class LogTag:
     SQL = "SQL"
-    ROUTER = "ROUTER"
+    ROUTER = "RTR"
     API_LLM = "API_LLM"
     LOCAL_LLM = "LOCAL_LLM"
     DB = "DB"
     FEEDBACK = "FEEDBACK"
     REQUEST = "REQUEST"
-    SQL_GENERATION = "SQL_GENERATION"
-    ANSWER = "ANSWER"
-    CHIT_CHAT = "CHIT_CHAT"
+    SQL_GENERATION = "SQL"
+    ANSWER = "ANS"
+    CHIT_CHAT = "CHT"
