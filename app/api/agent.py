@@ -4,7 +4,7 @@
 import time
 from typing import Optional, Dict
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.dependency import get_container
@@ -26,6 +26,12 @@ class AgentResponse(BaseModel):
     timings: Optional[Dict[str, float]] = None
 
 
+class FeedbackRequest(BaseModel):
+    user_id: str
+    session_id: str
+    is_good: bool
+
+
 router = APIRouter(prefix="/v1/llm/agent", tags=["Agent"])
 
 
@@ -35,6 +41,7 @@ async def query_agent(
     container=Depends(get_container),
 ):
     set_request_id(generate_request_id())
+    flow.start_request_scores()
 
     flow.log_request(request.user_id, request.session_id)
     flow.log_question(request.question)
@@ -58,3 +65,17 @@ async def query_agent(
         "retry_count": result.get("retry_count", 0),
         "timings": result.get("_timings", {}),
     }
+
+
+@router.post("/feedback")
+async def feedback_agent(
+    request: FeedbackRequest,
+    container=Depends(get_container),
+):
+    try:
+        await container.conversation_repository.save_feedback(
+            request.user_id, request.session_id, request.is_good
+        )
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
