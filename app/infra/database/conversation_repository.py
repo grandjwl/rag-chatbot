@@ -1,7 +1,6 @@
 # llmServer/app/infra/database/conversation_repository.py
 
 from typing import List, Dict, Optional
-from datetime import datetime
 from app.infra.database.rdb_repository import RDBRepository
 from app.core.config import settings
 import json
@@ -22,69 +21,63 @@ class ConversationRepository:
         session_id: str,
         question: str,
         refined_question: str,
-        response_data: Dict,
+        intent: str,
+        final_answer: str,
         final_sql: Optional[str],
-        entity_corrections: Dict,
+        rag_scores: Dict,
+        retry_count: int,
         execution_time_ms: int,
     ):
-
         query = f"""
         INSERT INTO {self.schema}.conversations (
-            user_id, session_id, role,
+            user_id, session_id,
             question, refined_question,
-            response_data, final_sql,
-            entity_corrections,
-            execution_time_ms,
-            created_at
+            intent, final_answer, final_sql,
+            rag_scores, retry_count,
+            execution_time_ms
         )
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
         """
-
-        response = await self.rdb_repository.execute(
+        await self.rdb_repository.execute(
             query,
             user_id,
             session_id,
-            "user",
             question,
             refined_question,
-            json.dumps(response_data),
+            intent,
+            final_answer,
             final_sql,
-            json.dumps(entity_corrections),
+            json.dumps(rag_scores),
+            retry_count,
             execution_time_ms,
-            datetime.utcnow(),
         )
-        # print(f"✅ Conversation 저장 완료: {response}")
+
     # -------------------------------
     # 최근 대화 조회 (Short-term memory)
     # -------------------------------
-    async def get_recent(
-        self,
-        user_id: str,
-        limit: int = 6,
-    ) -> List[Dict]:
-
+    async def get_recent(self, user_id: str, limit: int = 5) -> List[Dict]:
         query = f"""
-        SELECT
-            question,
-            refined_question,
-            final_sql,
-            response_data,
-            entity_corrections,
-            created_at
+        SELECT question, final_answer, created_at
         FROM {self.schema}.conversations
         WHERE user_id = $1
-          AND is_archived = FALSE
         ORDER BY created_at DESC
         LIMIT $2
         """
-
         return await self.rdb_repository.fetch(query, user_id, limit)
 
     # -------------------------------
-    # 아카이빙
+    # 피드백 저장
     # -------------------------------
-    async def archive_expired(self):
+    async def save_feedback(self, user_id: str, session_id: str, is_good: bool):
         query = f"""
-        SELECT {self.schema}.archive_expired_conversations();
+        UPDATE {self.schema}.conversations
+        SET feedback = $3
+        WHERE ctid = (
+            SELECT ctid FROM {self.schema}.conversations
+            WHERE user_id = $1 AND session_id = $2
+            ORDER BY created_at DESC
+            LIMIT 1
+        )
         """
-        return await self.rdb_repository.fetch_one(query)
+        # SMALLINT: 1=좋음, 0=나쁨, NULL=미응답
+        await self.rdb_repository.execute(query, user_id, session_id, 1 if is_good else 0)

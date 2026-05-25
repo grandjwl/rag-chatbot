@@ -3,8 +3,20 @@
 # 콘솔과 logs/flow.log에 사람이 읽기 쉬운 텍스트 형식으로 기록
 
 import logging
+import contextvars
 
 _flow = logging.getLogger("flow")
+
+# 요청 단위 RAG score 누적 (async-safe)
+_scores: contextvars.ContextVar[dict] = contextvars.ContextVar("rag_scores", default=None)
+
+
+def start_request_scores() -> None:
+    _scores.set({})
+
+
+def get_request_scores() -> dict:
+    return dict(_scores.get(None) or {})
 
 
 def log_request(user_id: str, session_id: str) -> None:
@@ -50,6 +62,13 @@ def log_answer(answer: str) -> None:
     if len(preview) > 150:
         preview = preview[:150] + "..."
     _flow.info(f"[ANSWER]   {preview}")
+
+
+def log_rag_scores(collection: str, score: float) -> None:
+    s = _scores.get(None)
+    if s is not None:
+        s[collection] = round(score, 4)
+    _flow.info(f"[RAG]      {collection}={score:.2f}")
 
 
 def log_done(retry_count: int, elapsed_sec: float) -> None:

@@ -15,14 +15,18 @@ class SaveConversationNode:
         user_id = state.get("user_id")
         session_id = state.get("session_id")
         question = state.get("question")
-        refined_question = state.get("refined_question")
-        final_answer = state.get("final_answer")
+        refined_question = state.get("refined_question") or question
+        intent = state.get("intent", "UNKNOWN")
+        final_answer = state.get("final_answer", "")
         sql_query = state.get("sql_query")
+        retry_count = state.get("retry_count", 0)
         start_time = state.get("start_time")
 
         execution_time_ms = 0
         if start_time:
             execution_time_ms = int((time.time() - start_time) * 1000)
+
+        rag_scores = flow.get_request_scores()
 
         if user_id and final_answer:
             await self.memory_service.save_conversation(
@@ -30,13 +34,14 @@ class SaveConversationNode:
                 session_id=session_id,
                 question=question,
                 refined_question=refined_question,
-                response_data={"final_answer": final_answer},
+                intent=intent,
+                final_answer=final_answer,
                 final_sql=sql_query,
-                refine_corrections={},
+                rag_scores=rag_scores,
+                retry_count=retry_count,
                 execution_time_ms=execution_time_ms,
             )
 
-        retry_count = state.get("retry_count", 0)
         elapsed_sec = execution_time_ms / 1000
         flow.log_done(retry_count, elapsed_sec)
 
