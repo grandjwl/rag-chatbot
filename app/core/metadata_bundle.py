@@ -11,5 +11,4 @@ class MetadataBundle:
     refine_cache: Dict[str, List[str]]
     column_map: Dict[str, List[str]]
     data_stats: Dict[str, str]
-    schema_context: str
     valid_joins: Dict[str, List[str]] = None

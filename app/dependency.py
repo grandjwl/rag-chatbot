@@ -15,7 +15,6 @@ from app.infra.vector.chroma_vector_client import ChromaVectorClient
 from app.infra.vector.vector_repository import VectorRepository
 from app.infra.database.conversation_repository import ConversationRepository
 
-from app.prompts.schema_context_builder import SchemaContextBuilder
 from app.prompts.valid_joins import VALID_JOINS
 
 from app.core.config import settings
@@ -90,14 +89,12 @@ async def create_metadata_bundle(rdb_repository) -> dict:
     meta_repo = RDBMetaRepository(rdb_repository=rdb_repository)
     raw_meta = await meta_repo.load_all()
 
-    builder = SchemaContextBuilder()
-    schema_context = builder.build(raw_meta["column_map"])
-
+    # 테이블 스키마는 더 이상 정적 schema_context로 주입하지 않음.
+    # 사용자 질문과 의미 매칭되는 테이블만 RAG(table-store)로 동적 주입.
     metadata_bundle = MetadataBundle(
         refine_cache=raw_meta["refine_cache"],
         column_map=raw_meta["column_map"],
         data_stats=raw_meta["data_stats"],
-        schema_context=schema_context,
         valid_joins=VALID_JOINS,
     )
     return metadata_bundle

@@ -47,7 +47,7 @@ class ServiceContainer:
 
         self.rerank_service = RerankService(reranker=_reranker_provider)
 
-        _bm25_collections = ["fewshot", "bizterm_store", "table_schema_store", "refine_store"]
+        _bm25_collections = ["fewshot-store", "bizterm-store", "table-store", "refine-store"]
         self.bm25_indexes = {
             name: BM25Index(vector_repository=vector_repository, collection_name=name)
             for name in _bm25_collections

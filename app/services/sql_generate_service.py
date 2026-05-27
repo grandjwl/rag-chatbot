@@ -69,9 +69,8 @@ class SQLGenerateService:
         rag_section = await self.rag_service.build(question=question, question_embedding=reuse_embedding)
 
         # ------------------------------------------------------------
-        # 3️⃣ 스키마 + 데이터 기간
+        # 3️⃣ 데이터 유효 기간 (테이블 스키마는 RAG 결과에 포함됨)
         # ------------------------------------------------------------
-        schema_ctx = self.metadata_bundle.schema_context
         min_date = self.metadata_bundle.data_stats.get("min_date")
         max_date = self.metadata_bundle.data_stats.get("max_date")
 
@@ -80,7 +79,6 @@ class SQLGenerateService:
         # ------------------------------------------------------------
         user_prompt = self._build_user_prompt(
             question=question,
-            schema=schema_ctx,
             min_date=min_date,
             max_date=max_date,
             error_history=error_history,
@@ -128,7 +126,6 @@ class SQLGenerateService:
     def _build_user_prompt(
         self,
         question: str,
-        schema: str,
         min_date: Optional[str],
         max_date: Optional[str],
         error_history,
@@ -137,9 +134,6 @@ class SQLGenerateService:
     ) -> str:
 
         return f"""
-        [스키마 정보]
-        {schema}
-
         [데이터 유효 기간]
         {min_date} ~ {max_date}
 

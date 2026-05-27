@@ -95,9 +95,9 @@ class RetrievalEngine:
     # ─────────────────────────────
     async def retrieve_fewshot(self, question: str, n: int = 1, *, query_embedding: Optional[List[float]] = None):
         try:
-            merged, doc_meta_map = await self._hybrid_search("fewshot", question, n * 5, query_embedding=query_embedding)
+            merged, doc_meta_map = await self._hybrid_search("fewshot-store", question, n * 5, query_embedding=query_embedding)
             if not merged:
-                flow.log_rag_scores("fewshot", 0.0)
+                flow.log_rag_scores("fewshot-store", 0.0)
                 return ""
 
             pre_top = sorted(merged, key=merged.get, reverse=True)[: n * 3]
@@ -107,7 +107,7 @@ class RetrievalEngine:
                 question, pre_top, pre_metas, top_n=n
             )
 
-            flow.log_rag_scores("fewshot", max(scores) if scores else 0.0)
+            flow.log_rag_scores("fewshot-store", max(scores) if scores else 0.0)
 
             return "\n---\n".join(
                 f"Q: {d}\nSQL: {m.get('sql', '')}"
@@ -117,12 +117,12 @@ class RetrievalEngine:
         except Exception as e:
             from app.infra.vector.exceptions import VectorCollectionNotFound
             if isinstance(e, VectorCollectionNotFound):
-                flow.log_rag_scores("fewshot", 0.0)
+                flow.log_rag_scores("fewshot-store", 0.0)
                 return ""
             logger.exception("Fewshot hybrid 실패 → 벡터 fallback")
             try:
                 vec_results = await self.vector_repository.search_by_text(
-                    collection_name="fewshot", query_text=question, top_k=n
+                    collection_name="fewshot-store", query_text=question, top_k=n
                 )
                 return "\n---\n".join(
                     f"Q: {r[0]}\nSQL: {r[1].get('sql', '')}" for r in vec_results
@@ -135,7 +135,7 @@ class RetrievalEngine:
     # ─────────────────────────────
     async def retrieve_entities(self, question: str, top_k: int = 5, *, query_embedding: Optional[List[float]] = None):
         try:
-            merged, doc_meta_map = await self._hybrid_search("refine_store", question, top_k * 3, query_embedding=query_embedding)
+            merged, doc_meta_map = await self._hybrid_search("refine-store", question, top_k * 3, query_embedding=query_embedding)
             if not merged:
                 return []
 
@@ -146,12 +146,12 @@ class RetrievalEngine:
                 question, pre_top, pre_metas, top_n=top_k
             )
 
-            flow.log_rag_scores("refine_store", max(scores) if scores else 0.0)
+            flow.log_rag_scores("refine-store", max(scores) if scores else 0.0)
             return list(zip(final_docs, final_metas, scores))
 
         except Exception:
             logger.exception("retrieve_entities 실패")
-            flow.log_rag_scores("refine_store", 0.0)
+            flow.log_rag_scores("refine-store", 0.0)
             return []
 
     # ─────────────────────────────

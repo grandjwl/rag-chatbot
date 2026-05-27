@@ -7,15 +7,15 @@ ChromaDB 컬렉션 조회 유틸리티
     list_collections()
 
     # 특정 컬렉션 샘플 출력
-    show_sample("bizterm_store", n=3)
-    show_sample("table_schema_store")
-    show_sample("refine_store", n=5)
-    show_sample("fewshot")
+    show_sample("bizterm-store", n=3)
+    show_sample("table-store")
+    show_sample("refine-store", n=5)
+    show_sample("fewshot-store")
 
     # 텍스트로 의미 검색
-    search("bizterm_store", "매출 관련 테이블이 뭐야?", top_k=3)
-    search("table_schema_store", "날짜 컬럼이 있는 테이블", top_k=2)
-    search("fewshot", "연도별 매출 합계", top_k=3)
+    search("bizterm-store", "매출 관련 테이블이 뭐야?", top_k=3)
+    search("table-store", "날짜 컬럼이 있는 테이블", top_k=2)
+    search("fewshot-store", "연도별 매출 합계", top_k=3)
 """
 
 import os
