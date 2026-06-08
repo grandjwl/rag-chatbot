@@ -26,15 +26,17 @@ class ResultValidationService:
 
     def validate(self, state: Dict) -> Dict:
 
-        df           = state.get("df")
+        rows         = state.get("rows")
         retry_count  = state.get("retry_count", 0)
         error_history = state.get("error_history", [])
 
         anomalies: List[str] = []
 
         # 빈 결과는 정상 — "조회 결과 없음"은 SQL 문제가 아님
-        if df is None or len(df) == 0:
+        if not rows:
             return {"result_anomalies": []}
+
+        df = self._build_dataframe(rows)
 
         # 1. NULL 비율 80% 초과
         for col in df.columns:
@@ -89,8 +91,9 @@ class ResultValidationService:
         for col in df.columns:
             col_lower = col.lower()
             if any(k in col_lower for k in self._DATE_KEYWORDS):
-                if pd.api.types.is_datetime64_any_dtype(df[col]):
-                    future_count = (df[col].dt.date > today).sum()
+                parsed = pd.to_datetime(df[col], errors="coerce")
+                if parsed.notna().any():
+                    future_count = (parsed.dt.date > today).sum()
                     if future_count > 0:
                         anomalies.append(f"'{col}' 미래 날짜 {future_count}건.")
 
@@ -106,3 +109,18 @@ class ResultValidationService:
             }
 
         return {"result_anomalies": []}
+
+    def _build_dataframe(self, rows) -> pd.DataFrame:
+        """
+        asyncpg Record 목록을 검증용 DataFrame으로 변환한다.
+        PostgreSQL NUMERIC은 Decimal로 들어와 object 컬럼이 되므로,
+        모든 비-NULL 값이 숫자로 변환되는 컬럼만 numeric으로 승격한다(텍스트 컬럼은 보존).
+        """
+        df = pd.DataFrame([dict(r) for r in rows])
+
+        for col in df.columns:
+            converted = pd.to_numeric(df[col], errors="coerce")
+            if converted.notna().sum() == df[col].notna().sum():
+                df[col] = converted
+
+        return df

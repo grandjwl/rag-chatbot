@@ -16,7 +16,7 @@ class ResultValidationNode:
 
     Graph 계약:
     입력:
-        - rows / df / retry_count / error_history
+        - rows / retry_count / error_history
 
     출력:
         {
