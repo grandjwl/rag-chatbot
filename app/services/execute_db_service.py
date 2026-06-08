@@ -106,6 +106,7 @@ class ExecuteDBService:
             if re.search(rf"\b{word}\b", stripped):
                 return False, f"위험 구문 포함: {word}"
 
+        # 문법 오류는 실행 단계에서 DB가 최종 판정한다. 여기선 경고만 남기고 통과시킨다(관대 정책).
         try:
             sqlglot.parse_one(sql, dialect="postgres")
         except Exception as e:
@@ -145,11 +146,13 @@ class ExecuteDBService:
                 select_part = sel_match.group(1)
 
                 cleaned = re.sub(
-                    r"(SUM|AVG|COUNT|MAX|MIN)\s*\([^)]+\)",
+                    r"(SUM|AVG|COUNT|MAX|MIN)\s*\((?:[^()]|\([^()]*\))*\)",
                     "",
                     select_part,
                     flags=re.IGNORECASE,
                 )
+                cleaned = re.sub(r"'[^']*'", "", cleaned)       # 문자열 상수 제거 (오탐 방지)
+                cleaned = re.sub(r"\bAS\s+\w+", "", cleaned, flags=re.IGNORECASE)  # 별칭 제거
 
                 non_agg_cols = [
                     c.strip()
@@ -175,16 +178,12 @@ class ExecuteDBService:
         )
 
         # 5️⃣ 테이블 존재 확인
-        # [수정 전]
-        # ref_tables = re.findall(r"(?:FROM|JOIN)\s+([a-zA-Z_][a-zA-Z0-9_]*)", sql, re.IGNORECASE)
-
-        # [수정 후]
-        # 1. EXTRACT(... FROM ...) 구문을 임시로 제거하여 오판 방지
+        # EXTRACT(... FROM ...) 구문을 임시로 제거해 FROM 오판 방지
         clean_sql_for_tables = re.sub(
             r"EXTRACT\s*\([^)]+\)", "", sql, flags=re.IGNORECASE
         )
 
-        # 2. 독립된 단어로서의 FROM/JOIN만 추출 (\b 추가)
+        # 독립된 단어로서의 FROM/JOIN만 추출
         ref_tables = re.findall(
             r"\b(?:FROM|JOIN)\s+([a-zA-Z_][a-zA-Z0-9_]*)",
             clean_sql_for_tables,
@@ -204,7 +203,10 @@ class ExecuteDBService:
             errors.append(col_reason)
             strategy = "column_missing"
 
-        # 7️⃣ 불필요 JOIN
+        # 7️⃣ 불필요 JOIN (별칭 없는 JOIN은 다음 토큰이 예약어이므로 제외)
+        _JOIN_NON_ALIAS = {"ON", "USING", "WHERE", "GROUP", "ORDER",
+                           "LEFT", "RIGHT", "INNER", "OUTER", "FULL",
+                           "CROSS", "JOIN", "LIMIT", "HAVING", "UNION"}
         join_aliases = re.findall(
             r"JOIN\s+[a-zA-Z_][a-zA-Z0-9_]*\s+(?:AS\s+)?([a-zA-Z_][a-zA-Z0-9_]*)",
             sql,
@@ -212,6 +214,8 @@ class ExecuteDBService:
         )
 
         for alias in join_aliases:
+            if alias.upper() in _JOIN_NON_ALIAS:
+                continue  # 별칭 없는 JOIN → 검사 제외
             usage = re.findall(
                 rf"\b{re.escape(alias)}\.",
                 sql,
