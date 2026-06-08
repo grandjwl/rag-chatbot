@@ -26,6 +26,14 @@ class BaseRDBClient(ABC):
         pass
 
     @abstractmethod
+    async def fetch_readonly(self, query: str, *args) -> List[Any]:
+        """
+        읽기 전용 트랜잭션으로 실행하는 SELECT.
+        DB 엔진이 모든 쓰기를 거부하므로, 신뢰할 수 없는(LLM 생성) 쿼리 실행에 사용한다.
+        """
+        pass
+
+    @abstractmethod
     async def execute(self, query: str, *args) -> Any:
         """
         INSERT / UPDATE / DELETE 계열 쿼리

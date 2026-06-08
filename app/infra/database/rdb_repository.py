@@ -28,16 +28,19 @@ class RDBRepository:
         rows = await self.fetch(query, *args)
         return rows[0] if rows else None
 
+    async def fetch_readonly(self, query: str, *args) -> List[Any]:
+        try:
+            return await self.rdb_client.fetch_readonly(query, *args)
+        except Exception:
+            logger.exception("RDB fetch_readonly failed")
+            raise
+
 
     # -------------------------------
     # 실행
     # -------------------------------
     async def execute(self, query: str, *args) -> Any:
         try:
-            # 디버깅용
-            # print("🚨 EXEC QUERY:")
-            # print(query)
-            # print("ARGS:", args)
             return await self.rdb_client.execute(query, *args)
         except Exception:
             logger.exception("RDB execute failed")

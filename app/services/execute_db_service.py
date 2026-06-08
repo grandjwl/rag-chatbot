@@ -74,7 +74,8 @@ class ExecuteDBService:
         safe_sql = self._apply_schema(safe_sql)
 
         try:
-            rows = await self.rdb_repository.fetch(safe_sql)
+            # LLM 생성 쿼리는 읽기 전용 트랜잭션으로 실행해 DB 차원에서 쓰기를 차단한다.
+            rows = await self.rdb_repository.fetch_readonly(safe_sql)
 
             explain_meta = self._build_explain_meta(sql, rows)
             return {

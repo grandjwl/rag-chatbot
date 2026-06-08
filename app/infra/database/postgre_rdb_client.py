@@ -35,6 +35,15 @@ class PostgresRDBClient(BaseRDBClient):
         async with self._pool.acquire() as conn:
             return await conn.fetch(query, *args)
 
+    async def fetch_readonly(self, query: str, *args) -> List[Any]:
+        if not self._pool:
+            raise RuntimeError("Postgres pool is not initialized. Call connect() first.")
+
+        async with self._pool.acquire() as conn:
+            # 읽기 전용 트랜잭션: 검증을 우회한 쓰기 쿼리도 DB 엔진이 거부한다.
+            async with conn.transaction(readonly=True):
+                return await conn.fetch(query, *args)
+
     async def execute(self, query: str, *args) -> Any:
         if not self._pool:
             raise RuntimeError("Postgres pool is not initialized. Call connect() first.")
@@ -44,13 +53,9 @@ class PostgresRDBClient(BaseRDBClient):
           
     @asynccontextmanager
     async def transaction(self):
-        # ❌ self.pool.acquire() -> self._pool (언더바 누락 확인 필요)
         if not self._pool:
             raise RuntimeError("Pool not initialized")
-            
+
         async with self._pool.acquire() as conn:
-            # 이 시점에 BEGIN 명령이 나갑니다.
             async with conn.transaction():
-                # 사용자는 이 conn을 받아서 여러 작업을 수행합니다.
-                yield conn 
-            # 이 블록을 나가면 자동으로 COMMIT 혹은 ROLLBACK이 나갑니다.
+                yield conn
