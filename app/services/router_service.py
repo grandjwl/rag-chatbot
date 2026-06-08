@@ -45,10 +45,4 @@ class RouterService:
         return f"""{history_section}[현재 질문]
 {question}
 
-분류 기준:
-- INVENTORY: 재고 현황, 매출/매입 금액, 판매량, 구매 이력 등 사내 DB 조회가 필요한 질문
-- CHIT_CHAT: 인사, 잡담, 또는 DB 조회 없이 답할 수 있는 모든 질문
-
-반드시 둘 중 하나만 출력하세요. 다른 말은 절대 붙이지 마세요.
-INVENTORY
-CHIT_CHAT"""
+INVENTORY 또는 CHIT_CHAT 중 하나만 출력하세요. 다른 말은 절대 붙이지 마세요."""

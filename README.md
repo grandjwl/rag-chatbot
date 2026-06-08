@@ -45,7 +45,7 @@
 
 - **관계형 DB (PostgreSQL)** — 전자부품 유통 도메인을 반영해 7개 테이블로 설계했습니다. 제품 마스터(`products`), 제조사(`manufacturers`), 고객사(`vendors`), 매입 이력(`purchase_orders`), 매출 이력(`sales_orders`), 실시간 재고(`current_products`), 초기 재고(`initial_inventory`)가 `part_number`를 중심으로 연결됩니다.
 - **벡터 DB (ChromaDB)** — RAG 보조 데이터를 4개 컬렉션으로 분리해 관리합니다.
-   > `fewshot`(질의–SQL 생성 예시), `bizterm_store`(비즈니스 용어 정의), `table_schema_store`(테이블 스키마 정보), `refine_store`(사용자 질문 교정)
+   > `fewshot-store`(질의–SQL 생성 예시), `bizterm-store`(비즈니스 용어 정의), `table-store`(테이블 스키마 정보), `refine-store`(사용자 질문 교정)
 <br><br>
 
 #### 모델 선정
@@ -74,7 +74,7 @@
 - **하이브리드 RAG 검색** — 벡터 유사도와 BM25 키워드 검색을 **RRF(Reciprocal Rank Fusion)**로 병합한 후 Cohere로 재정렬하는 3단계 검색을 구현했습니다. 4개 ChromaDB 컬렉션 모두 동일 파이프라인을 공유하며, 개별 전략 실패 시 자동 fallback해 서비스가 중단되지 않습니다.
 - **SQL 안전 검증** — `SELECT *` 금지, 존재하지 않는 테이블·컬럼 차단, Cartesian Product 감지, 허용된 JOIN 조합 강제 등 7단계 정적 검증으로 LLM이 생성한 SQL의 안전성을 확보했습니다.
 - **에러 기반 재시도** — DB 실행 실패 시 에러 메시지를 분석해 수정 힌트를 생성하고, 다음 SQL 생성 프롬프트에 삽입합니다. LLM이 같은 실수를 반복하지 않도록 한 설계입니다.
-- **Hallucination 방지** — 답변 생성 시 LLM에게 실제 DB 조회 결과만을 FACT로 명시해, 없는 데이터를 지어내는 것을 차단했습니다.
+- **환각 방지** — 답변 생성 시 LLM에게 실제 DB 조회 결과만을 FACT로 명시해, 없는 데이터를 지어내는 것을 차단했습니다.
 - **대화 맥락 기억** — 최근 5턴(질문·답변)을 그대로 LLM 프롬프트에 주입하는 단순 구조를 채택했습니다. 복잡한 재조립·대명사 치환 로직 없이도 맥락 유지 정확도와 유지보수성을 모두 확보했습니다. 모든 대화는 별도 스키마에 영구 저장되어 다음 턴의 맥락으로 활용됩니다.
 - **Provider Registry 패턴** — LLM·임베딩·리랭커를 각각 추상 인터페이스로 분리하고 단일 레지스트리에서 관리합니다. `dependency.py` 한 곳만 수정하면 다른 모델로 교체할 수 있는 구조입니다.
 - **이중 로그 스트림** — API 호출 로그(한 줄 텍스트, `logs/app.log`)와 비즈니스 흐름 로그(텍스트, `logs/flow.log`)를 분리해, 운영 중 파이프라인 흐름(`REQUEST→QUESTION→ROUTE→SQL→DB→ANSWER→DONE`)을 한눈에 추적할 수 있습니다.
